@@ -1,0 +1,72 @@
+cabal-version: 3.12
+name:          aoc
+version:       0
+synopsis:      Advent of Code in Haskell
+build-type:    Simple
+tested-with:   GHC ==9.10.3
+
+-- Language settings for every component; .hlint.yaml mirrors the extensions
+common language
+  default-language:   GHC2024
+  default-extensions:
+    DerivingVia
+    DuplicateRecordFields
+    NoFieldSelectors
+    OverloadedRecordDot
+    OverloadedStrings
+    StrictData
+
+  -- relude is the Prelude
+  mixins:
+    base hiding (Prelude),
+    relude (Relude as Prelude)
+
+  build-depends:
+    , base
+    , relude
+
+  -- Every warning is an error, minus: Safe Haskell is unused
+  -- (missing-safe-haskell-mode, unsafe, safe, inferred-safe-imports);
+  -- missed specialisations are optimizer notes, not defects; relude is the
+  -- implicit Prelude; GHC infers kinds; unused-packages reports base and
+  -- relude as unused when modules reach them only through the mixin Prelude
+  -- (observed on GHC 9.10.3). HIE files feed weeder and stan; each component
+  -- writes its own directory so same-named modules cannot overwrite them.
+  ghc-options:
+    -Weverything -Werror -Wno-missing-safe-haskell-mode -Wno-unsafe
+    -Wno-safe -Wno-inferred-safe-imports -Wno-missed-specialisations
+    -Wno-all-missed-specialisations -Wno-implicit-prelude
+    -Wno-missing-kind-signatures -Wno-unused-packages -fwrite-ide-info
+
+library
+  import:          language
+  ghc-options:     -hiedir=.hie/lib
+  hs-source-dirs:  src
+  exposed-modules:
+    AoC.Registry
+    AoC.Solution
+
+executable aoc
+  import:         language
+  ghc-options:    -hiedir=.hie/aoc
+  hs-source-dirs: app/aoc
+  main-is:        Main.hs
+  build-depends:
+    , aoc
+    , bytestring
+    , containers
+
+test-suite test
+  import:         language
+  ghc-options:    -hiedir=.hie/test
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is:        Main.hs
+  build-depends:
+    , aoc
+    , containers
+    , directory
+    , filepath
+    , tasty
+    , tasty-hunit
+    , text

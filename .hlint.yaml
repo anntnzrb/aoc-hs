@@ -1,0 +1,76 @@
+# Every reported hint fails `just lint`; nothing is suppressed in source.
+# relude is the Prelude; its own hint file (pinned in the flake) adds the
+# "use the relude function" hints. An unqualified function name also matches
+# its qualified uses (T.head); list each name once, or matching entries repeat
+# the message.
+
+# Parse as GHC compiles: the GHC2024 edition plus the project-wide extensions
+- arguments:
+    - -XGHC2024
+    - -XOverloadedRecordDot
+    - -XNoFieldSelectors
+    - -XDuplicateRecordFields
+    - -XStrictData
+    - -XDerivingVia
+    - -XOverloadedStrings
+
+# return -> pure. The partial group is off: it covers base only and flags
+# shiftL/shiftR; the partial bans below cover every container
+- group: {name: future, enabled: true}
+
+# Keep chained transformations left to right; the dollar group reverses them.
+- warn: {name: Use a pipeline, lhs: "a $ b $ c", rhs: "c & b & a"}
+- warn: {name: Use a pipeline, lhs: "a . b $ c", rhs: "c & b & a"}
+
+# Point-free rewrites that cost readability
+- ignore: {name: Eta reduce}
+- ignore: {name: Avoid lambda using `infix`}
+
+# Extensions and GHC flags come from the build configuration only: no
+# LANGUAGE pragmas, no OPTIONS_GHC (which could also silence warnings)
+- extensions:
+    - default: false
+- flags:
+    - default: false
+
+- modules:
+    - {name: Control.Arrow, within: [], message: "relude exports (&&&); use Bifunctor first/second"}
+    # Lazy containers build thunks
+    - {name: [Data.Map, Data.Map.Lazy], within: [], message: Use Data.Map.Strict}
+    - {name: [Data.IntMap, Data.IntMap.Lazy], within: [], message: Use Data.IntMap.Strict}
+    - {name: Control.Monad.ST.Lazy, within: [], message: Use Control.Monad.ST}
+    - {name: Data.Text.Lazy.IO, within: [], message: Lazy IO; use Data.Text.IO}
+    - {name: [System.IO.Unsafe, GHC.IO.Unsafe, Unsafe.Coerce], within: [], message: Bypasses effect tracking or the type checker}
+    - {name: Debug.Trace, within: [], message: Debug leftover}
+    - {name: [Control.Monad.Except, Control.Monad.Trans.Except], within: [], message: "Exceptions in IO, Either in pure code; no ExceptT"}
+    # Superseded or unmaintained; the picks are megaparsec, effectful and
+    # streamly
+    - {name: [Text.Parsec, Text.ParserCombinators.Parsec], within: [], message: Use megaparsec}
+    - {name: ["Text.Regex.**"], within: [], message: Use parser combinators}
+    - {name: [Polysemy, "Polysemy.**", Control.Monad.Freer, "Control.Monad.Freer.**", Control.Eff, "Control.Eff.**"], within: [], message: Use effectful}
+    - {name: [Pipes, "Pipes.**", System.IO.Streams, "System.IO.Streams.**"], within: [], message: Use streamly}
+
+# Complexity caps: split what grows past them
+- smell: {type: long functions, limit: 20}
+- smell: {type: many arg functions, limit: 4}
+- smell: {type: many imports, limit: 12}
+
+- functions:
+    # Partial, qualified by origin: relude's head, tail, init and last take a
+    # NonEmpty and are total, as are Relude.Extra.Foldable1's methods
+    - {name: [Data.List.head, Data.List.tail, Data.List.init, Data.List.last, "Data.List.!!", Data.List.maximum, Data.List.minimum, Data.List.maximumBy, Data.List.minimumBy, Data.List.foldr1, Data.List.foldl1, Data.List.cycle], within: [], message: Partial; pattern match or use a total alternative}
+    - {name: [Data.Foldable.maximum, Data.Foldable.minimum, Data.Foldable.maximumBy, Data.Foldable.minimumBy, Data.Foldable.foldr1, Data.Foldable.foldl1, Data.List.NonEmpty.fromList], within: [], message: Partial; pattern match or use a total alternative}
+    - {name: [Data.Text.head, Data.Text.tail, Data.Text.init, Data.Text.last, Data.Text.maximum, Data.Text.minimum, Data.Text.foldr1, Data.Text.foldl1, Data.Text.index], within: [], message: Partial; pattern match on uncons or unsnoc}
+    - {name: [Data.ByteString.head, Data.ByteString.tail, Data.ByteString.init, Data.ByteString.last, Data.ByteString.maximum, Data.ByteString.minimum, Data.ByteString.foldr1, Data.ByteString.foldl1, Data.ByteString.index], within: [], message: Partial; pattern match on uncons or unsnoc}
+    - {name: [Data.ByteString.Char8.head, Data.ByteString.Char8.tail, Data.ByteString.Char8.init, Data.ByteString.Char8.last, Data.ByteString.Char8.maximum, Data.ByteString.Char8.minimum, Data.ByteString.Char8.foldr1, Data.ByteString.Char8.foldl1, Data.ByteString.Char8.index], within: [], message: Partial; pattern match on uncons or unsnoc}
+    - {name: fromJust, within: [], message: Partial; pattern match or use maybe}
+    - {name: "!", within: [], message: Partial; use !? or lookup}
+    - {name: read, within: [], message: Partial; parse with megaparsec or Text.Read.readMaybe}
+    - {name: [error, errorWithoutStackTrace, undefined], within: [], message: Crashes at runtime; return Either or throw in IO}
+    - {name: foldl, within: [], message: "Lazy accumulation; use foldl'"}
+    - {name: [modifyIORef, modifySTRef, atomicModifyIORef], within: [], message: Lazy accumulation; use the primed variant}
+    - {name: [nub, nubBy], within: [], message: O(n^2); use ordNub or Data.Set}
+    # Qualified: the strict ByteString and Text variants share these names
+    - {name: [Prelude.getContents, Prelude.readFile, Prelude.interact, System.IO.getContents, System.IO.readFile, System.IO.interact, System.IO.hGetContents], within: [], message: Lazy IO; use the strict Text or ByteString variant}
+    - {name: [Data.ByteString.Lazy.getContents, Data.ByteString.Lazy.readFile, Data.ByteString.Lazy.hGetContents, Data.ByteString.Lazy.interact, Data.ByteString.Lazy.Char8.getContents, Data.ByteString.Lazy.Char8.readFile, Data.ByteString.Lazy.Char8.hGetContents, Data.ByteString.Lazy.Char8.interact], within: [], message: Lazy IO; use Data.ByteString}
+    - {name: [unsafePerformIO, unsafeInterleaveIO, unsafeDupablePerformIO, unsafeCoerce], within: [], message: Bypasses effect tracking or the type checker}

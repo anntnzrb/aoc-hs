@@ -1,0 +1,20 @@
+# AoC content is not redistributable (adventofcode.com/about):
+# inputs, puzzle statements, and fixtures copied from puzzle examples
+/inputs/
+/puzzles/
+/fixtures/
+
+# agent scratch, audit references, regression answers
+/.cache/
+
+# build artifacts and HIE files (weeder, stan)
+/dist-newstyle/
+/.hie/
+
+# secrets: the session cookie, in any .env variant
+.env
+.env.*
+
+# agent harness state
+/.claude/settings.local.json
+/.claude/scheduled_tasks.lock

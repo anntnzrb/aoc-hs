@@ -1,0 +1,4 @@
+# Dead code: everything unreachable from the executables' and the test
+# suite's main, unused types included
+roots = ["^Main\\.main$"]
+unused-types = true
