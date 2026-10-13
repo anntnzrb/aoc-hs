@@ -12,7 +12,9 @@ import Data.Foldable qualified as Foldable
 import Data.Sequence qualified as Seq
 
 {- | Scramble abcdefgh and unscramble fbgdceah; fail on invalid positions, missing
-letters or ambiguous inverse rotations. Input grammar errors are returned as text.
+letters for position-based rotation or ambiguous inverse rotations. Letter swaps
+substitute matching letters and permit absent letters. Input grammar errors are
+returned as text.
 -}
 solver :: Solver
 solver text = do
