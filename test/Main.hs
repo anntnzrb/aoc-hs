@@ -1,10 +1,7 @@
 -- | Every registered solution against every fixture of its day.
 module Main (main) where
 
-import AoC.AssembunnyTests qualified
-import AoC.GridTests qualified
-import AoC.MD5Tests qualified
-import AoC.SearchTests qualified
+import AoC.SharedTests qualified
 import OpsTests qualified
 
 -- ops:test-imports
@@ -26,10 +23,7 @@ main = do
             "all"
             [ testGroup "fixtures" tests
             , OpsTests.tests
-            , AoC.AssembunnyTests.tests
-            , AoC.MD5Tests.tests
-            , AoC.SearchTests.tests
-            , AoC.GridTests.tests
+            , AoC.SharedTests.tests
             -- ops:test-entries
             ]
 
