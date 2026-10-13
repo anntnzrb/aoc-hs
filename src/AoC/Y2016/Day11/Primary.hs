@@ -40,6 +40,9 @@ packArrangement :: Arrangement -> Int
 packArrangement (Arrangement elevator pairs) = foldl' (\encoded (generator, microchip) -> 16 * encoded + 4 * floorCode generator + floorCode microchip) (floorCode elevator) pairs
 
 unpackArrangement :: Int -> Int -> Int -> Arrangement
+-- The fixed pair count preserves leading zero pairs. Sorted pairs decode
+-- least-significant-first (reversed); successors re-sort before repacking,
+-- so the reversed decoding still produces canonical keys.
 unpackArrangement count base encoded = Arrangement (codeFloor (encoded `div` base)) [(codeFloor (pair `div` 4), codeFloor (pair `mod` 4)) | digit <- take count (iterate (`div` 16) encoded), let pair = digit `mod` 16]
 
 floorCode :: Floor -> Int
