@@ -1,5 +1,6 @@
 module AoC.Y2016.Tests (tests) where
 
+import AoC.Y2016.Day05 qualified as Day05
 import AoC.Y2016.Day08 qualified as Day08
 import AoC.Y2016.Day09 qualified as Day09
 import AoC.Y2016.Day10 qualified as Day10
@@ -16,7 +17,8 @@ tests :: TestTree
 tests =
     testGroup
         "2016 differential properties"
-        [ Day08.tests
+        [ Day05.tests
+        , Day08.tests
         , Day09.tests
         , Day10.tests
         , Day11.tests

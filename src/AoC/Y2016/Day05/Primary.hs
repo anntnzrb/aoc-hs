@@ -11,11 +11,9 @@ keeps the first hit for each position and emits characters in position order.
 -}
 module AoC.Y2016.Day05.Primary (solver) where
 
-import AoC.MD5 (hexNibbles)
 import AoC.Solution (Answers, Solver, answers)
+import AoC.Y2016.Day05.Digest (increment, nextDigits)
 import AoC.Y2016.Day05.Input (Input (Input), parseInput)
-import Crypto.Hash.MD5 qualified as MD5
-import Data.ByteString qualified as BS
 import Data.Char (isOctDigit)
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
@@ -36,33 +34,6 @@ solver text = do
         & scanl' addHit (Passwords "" Map.empty)
         & find complete
         & renderPasswords
-
-nextDigits :: ByteString -> ByteString -> Maybe (Char, Char)
-nextDigits door index = case BS.uncons digest of
-    Just (0, rest) -> case BS.uncons rest of
-        Just (0, suffix) -> case hexNibbles suffix of
-            0 : position : value : _ -> Just (hexDigit position, hexDigit value)
-            _other -> Nothing
-        _other -> Nothing
-    _other -> Nothing
-  where
-    digest = MD5.hash (door <> index)
-
-hexDigit :: Word8 -> Char
-hexDigit digit
-    | digit < 10 = chr (fromIntegral digit + ord '0')
-    | otherwise = chr (fromIntegral digit + ord 'a' - 10)
-
-increment :: ByteString -> ByteString
-increment bytes = case BS.mapAccumR carry True bytes of
-    (True, digits) -> BS.cons 49 digits
-    (False, digits) -> digits
-  where
-    carry :: Bool -> Word8 -> (Bool, Word8)
-    carry overflow digit
-        | not overflow = (False, digit)
-        | digit == 57 = (True, 48)
-        | otherwise = (False, digit + 1)
 
 addHit :: Passwords -> (Char, Char) -> Passwords
 addHit passwords (position, value) =
