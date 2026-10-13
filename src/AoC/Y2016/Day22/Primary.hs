@@ -2,7 +2,7 @@
 approach: Count viable pairs; BFS the vacant and goal positions when checked
 capacity bounds prove swaps are the only legal moves, otherwise BFS full loads.
 cost: O(n^2 log n) time and O(n^2) memory for swaps; full search exponential
-in node count. One parsing pass, then bounded node and search traversals.
+in node count. One parsing pass, one cached adjacency pass, then search traversals.
 trade: Checked swap states use compact integer keys and cached adjacency;
 the proved reduction handles large grids without guessing a route;
 unreachable or missing goal data uses the documented part-2 placeholder 0.
