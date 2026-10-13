@@ -10,8 +10,16 @@ import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
 
+-- ops:property-imports
+
 tests :: TestTree
-tests = testGroup "2016/18 literal rows" [testProperty "arbitrary widths and word boundaries" firstRows, testProperty "both fixed row counts" fullRows]
+tests =
+    testGroup
+        "2016/18 literal rows"
+        [ testProperty "arbitrary widths and word boundaries" firstRows
+        , testProperty "both fixed row counts" fullRows
+        -- ops:property-entries
+        ]
 
 firstRows :: Property
 firstRows =

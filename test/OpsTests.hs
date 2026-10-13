@@ -75,6 +75,13 @@ registrationTests =
     testGroup
         "registration anchors"
         [ testCase "existing year retains valid root anchors" $ isRight (scaffold (2015, 2) Nothing (registrationFiles rootSource)) @?= True
+        , testCase "no new test module leaves its cabal anchor unchanged" $ do
+            let result = scaffold (2015, 2) Nothing (registrationFiles rootSource)
+                cabal = result <&> (filter ((== "aoc.cabal") . fst) >>> map snd)
+            fmap (not . any (T.isInfixOf "\n\n    -- ops:test-modules")) cabal @?= Right True
+        , testCase "existing property modules accept exploration registration" $ do
+            let files = registrationFiles rootSource <> [("src/AoC/Y2015/Day02/Primary.hs", "primary"), ("test/Main.hs", "existing main"), ("test/AoC/Y2015/Day02.hs", "-- ops:property-imports\ntests = testGroup \"day\"\n    [ testCase \"existing\" (pure ())\n    -- ops:property-entries\n    ]\n")]
+            isRight (scaffold (2015, 2) (Just "Probe") files) @?= True
         , testCase "existing year rejects missing root anchors" $
             traverse_ (\anchor -> scaffold (2015, 2) Nothing (registrationFiles (T.replace anchor "" rootSource)) @?= Left ("missing or ambiguous scaffold anchor: " <> anchor)) rootAnchors
         , testCase "existing year rejects duplicate root anchors" $

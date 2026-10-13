@@ -11,6 +11,8 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog (testProperty)
 
+-- ops:property-imports
+
 type Position = (Int, Int)
 type Nodes = [(Position, (Int, Int))]
 type Storage = (Map Position Int, Position)
@@ -23,6 +25,7 @@ tests =
         , testCase "swap preconditions and walls" (traverse_ check examples)
         , testCase "payloads near Int bounds" (traverse_ check largeExamples)
         , testCase "reject overflowing node fields" (traverse_ (\excess -> traverse_ (rejectOverflow excess) [0 .. 5]) [limit, 2 * limit])
+        -- ops:property-entries
         ]
   where
     limit = toInteger (maxBound :: Int) + 1

@@ -9,6 +9,8 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog (testProperty)
 
+-- ops:property-imports
+
 type Arrangement = (Int, [(Int, Int)])
 
 tests :: TestTree
@@ -17,6 +19,7 @@ tests =
         "2016/11"
         [ testProperty "safe inventories and element renaming" inventories
         , testCase "oversized safe stranded inventory" overflow
+        -- ops:property-entries
         ]
 
 inventories :: Property

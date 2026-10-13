@@ -6,11 +6,18 @@ import Data.ByteString qualified as Bytes
 import Hedgehog (Property, forAll, property, withTests, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Test.Tasty (TestTree)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
 
+-- ops:property-imports
+
 tests :: TestTree
-tests = testProperty "2016/16 literal full disks" disks
+tests =
+    testGroup
+        "2016/16"
+        [ testProperty "2016/16 literal full disks" disks
+        -- ops:property-entries
+        ]
 
 -- Strict bytes make the literal 35-million-tile disk feasible without a parity oracle.
 disks :: Property
