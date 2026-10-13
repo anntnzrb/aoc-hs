@@ -1,6 +1,7 @@
 -- | @aoc YEAR DAY [EXPLORATION]@: run one solution as a stdin filter.
 module Main (main) where
 
+import AoC.Parse (boundedSignedDecimal, parseText)
 import AoC.Registry (Key (Key), Variant (Exploration, Primary), solvers)
 import AoC.Solution (render)
 import Data.ByteString qualified as ByteString
@@ -36,11 +37,7 @@ parseKey = \case
     key :: Text -> Text -> Variant -> Either Text Key
     key year day variant = Key <$> number year <*> number day <*> pure variant
     number :: Text -> Either Text Int
-    number text =
-        text
-            & toString
-            & readMaybe
-            & maybeToRight ("not a number: " <> text)
+    number = parseText boundedSignedDecimal
 
 orDie :: Either Text a -> IO a
 orDie = either (die . toString) pure
