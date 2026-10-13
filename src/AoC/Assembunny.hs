@@ -182,7 +182,12 @@ adjustment :: Instruction -> Maybe (Register, Integer)
 adjustment = \case
     Increment (RegisterValue registerName) -> Just (registerName, 1)
     Decrement (RegisterValue registerName) -> Just (registerName, -1)
-    _ -> Nothing
+    Increment (Literal _) -> Nothing
+    Decrement (Literal _) -> Nothing
+    Copy{} -> Nothing
+    Jump{} -> Nothing
+    Toggle{} -> Nothing
+    Output{} -> Nothing
 
 independent :: Value -> [Register] -> Bool
 independent source modified = case source of
