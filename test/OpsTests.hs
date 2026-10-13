@@ -1,6 +1,7 @@
 -- | Offline operation contracts; never reads the account configuration.
 module OpsTests (tests) where
 
+import Data.List (lookup)
 import Data.Text qualified as T
 import Ops.Benchmark (Result (Result), row)
 import Ops.Command (moduleName, parseNumber)
@@ -82,12 +83,24 @@ registrationTests =
         , testCase "existing property modules accept exploration registration" $ do
             let files = registrationFiles rootSource <> [("src/AoC/Y2015/Day02/Primary.hs", "primary"), ("test/Main.hs", "existing main"), ("test/AoC/Y2015/Day02.hs", "-- ops:property-imports\ntests = testGroup \"day\"\n    [ testCase \"existing\" (pure ())\n    -- ops:property-entries\n    ]\n")]
             isRight (scaffold (2015, 2) (Just "Probe") files) @?= True
+        , testCase "exploration aliases cannot collide with property support" $
+            for_ ["OpsPrimary", "OpsAnswers", "OpsProperty", "OpsTests"] checkAlias
         , testCase "existing year rejects missing root anchors" $
             traverse_ (\anchor -> scaffold (2015, 2) Nothing (registrationFiles (T.replace anchor "" rootSource)) @?= Left ("missing or ambiguous scaffold anchor: " <> anchor)) rootAnchors
         , testCase "existing year rejects duplicate root anchors" $
             traverse_ (\anchor -> scaffold (2015, 2) Nothing (registrationFiles (rootSource <> "\n" <> anchor)) @?= Left ("missing or ambiguous scaffold anchor: " <> anchor)) rootAnchors
         ]
   where
+    checkAlias :: Text -> IO ()
+    checkAlias name = do
+        let path :: FilePath
+            path = "test/AoC/Y2015/Day02.hs"
+            files = registrationFiles rootSource <> [("src/AoC/Y2015/Day02/Primary.hs", "primary"), ("test/Main.hs", "existing main"), (path, "-- ops:property-imports\ntests = testGroup \"day\"\n    [ testCase \"existing\" (pure ())\n    -- ops:property-entries\n    ]\n")]
+            planned = scaffold (2015, 2) (Just name) files >>= (lookup path >>> maybeToRight "missing property module")
+        fmap (T.isInfixOf ("import AoC.Y2015.Day02." <> name <> " qualified as OpsCandidate" <> name <> "\n")) planned @?= Right True
+        fmap (T.isInfixOf ("(OpsCandidate" <> name <> ".solver input)")) planned @?= Right True
+        for_ ["import AoC.Y2015.Day02.Primary qualified as OpsPrimary", "import AoC.Solution qualified as OpsAnswers", "import Hedgehog qualified as OpsProperty", "import Test.Tasty.Hedgehog qualified as OpsTests"] $ \support ->
+            fmap (T.isInfixOf support) planned @?= Right True
     rootAnchors :: [Text]
     rootAnchors = ["-- ops:root-imports", "    -- ops:root-entries"]
     rootSource :: Text

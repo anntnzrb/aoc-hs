@@ -142,7 +142,7 @@ preflightDirectories states = case [toText path | (path, False) <- states] of
 -- their aliases. The empty generator is a scaffold stub to replace with grammar.
 propertyImports :: Text -> (Text, Text) -> Text
 propertyImports day (name, source) =
-    unlines (["import " <> day <> "." <> name <> " qualified as " <> name] <> filter (not . (`T.isInfixOf` source)) support)
+    unlines (["import " <> day <> "." <> name <> " qualified as OpsCandidate" <> name] <> filter (not . (`T.isInfixOf` source)) support)
   where
     support =
         if "genInput ::" `T.isInfixOf` source
@@ -156,8 +156,8 @@ propertyImports day (name, source) =
 
 propertyEntry :: Text -> Text -> Text
 propertyEntry name source
-    | "genInput ::" `T.isInfixOf` source = "testProperty \"" <> name <> " agrees with primary\" (property (do { input <- forAll genInput; fmap render (" <> name <> ".solver input) === fmap render (Primary.solver input) }))"
-    | otherwise = "OpsTests.testProperty \"" <> name <> " agrees with primary\" (OpsProperty.property (do { input <- OpsProperty.forAll (pure (\"\" :: Text)); fmap OpsAnswers.render (" <> name <> ".solver input) OpsProperty.=== fmap OpsAnswers.render (OpsPrimary.solver input) }))"
+    | "genInput ::" `T.isInfixOf` source = "testProperty \"" <> name <> " agrees with primary\" (property (do { input <- forAll genInput; fmap render (OpsCandidate" <> name <> ".solver input) === fmap render (Primary.solver input) }))"
+    | otherwise = "OpsTests.testProperty \"" <> name <> " agrees with primary\" (OpsProperty.property (do { input <- OpsProperty.forAll (pure (\"\" :: Text)); fmap OpsAnswers.render (OpsCandidate" <> name <> ".solver input) OpsProperty.=== fmap OpsAnswers.render (OpsPrimary.solver input) }))"
 
 propertyPrefix :: Text -> Text
 propertyPrefix source = bool "      " "    , " (any (`T.isInfixOf` source) ["testProperty \"", "testCase \""])
