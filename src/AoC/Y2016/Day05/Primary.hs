@@ -18,6 +18,12 @@ import Crypto.Hash.MD5 qualified as MD5
 import Data.ByteString qualified as BS
 import Data.Char (isOctDigit)
 import Data.Map.Strict qualified as Map
+import Data.Text qualified as Text
+
+data Passwords = Passwords
+    { sequential :: Text
+    , positional :: Map Char Char
+    }
 
 {- | Return the sequential and position-based eight-character door passwords using
 qualifying MD5 hashes. Input grammar errors are returned as text.
@@ -27,7 +33,7 @@ solver text = do
     Input door <- parseInput text
     let hits = [digits | index <- iterate increment "0", Just digits <- [nextDigits (encodeUtf8 door) index]]
     hits
-        & scanl' addHit ([], Map.empty)
+        & scanl' addHit (Passwords "" Map.empty)
         & find complete
         & renderPasswords
 
@@ -58,21 +64,21 @@ increment bytes = case BS.mapAccumR carry True bytes of
         | digit == 57 = (True, 48)
         | otherwise = (False, digit + 1)
 
-addHit :: ([Char], Map Char Char) -> (Char, Char) -> ([Char], Map Char Char)
-addHit (sequential, positional) (position, value) =
-    (take 8 (sequential <> [position]), filled)
+addHit :: Passwords -> (Char, Char) -> Passwords
+addHit passwords (position, value) =
+    Passwords (Text.take 8 (passwords.sequential <> one position)) filled
   where
     filled
-        | isOctDigit position = Map.insertWith (\_ old -> old) position value positional
-        | otherwise = positional
+        | isOctDigit position = Map.insertWith (\_ old -> old) position value passwords.positional
+        | otherwise = passwords.positional
 
-complete :: ([Char], Map Char Char) -> Bool
+complete :: Passwords -> Bool
 complete =
-    snd
+    (.positional)
         >>> Map.size
         >>> (== 8)
 
-renderPasswords :: Maybe ([Char], Map Char Char) -> Either Text Answers
+renderPasswords :: Maybe Passwords -> Either Text Answers
 renderPasswords = \case
-    Just (sequential, positional) -> answers (toText sequential) (Just (toText (Map.elems positional)))
+    Just passwords -> answers passwords.sequential (Just (toText (Map.elems passwords.positional)))
     Nothing -> answers "0" (Just "0")
