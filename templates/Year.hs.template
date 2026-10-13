@@ -1,0 +1,13 @@
+-- | Every registered variant in {{YEAR}}.
+module AoC.Y{{YEAR}}.Registry (solvers) where
+
+import AoC.Registry.Types (Variant (Primary))
+import AoC.Solution (Solver)
+import Data.Map.Strict qualified as Map
+-- ops:year-imports
+
+solvers :: Map (Int, Variant) Solver
+solvers = Map.fromList
+    [
+    -- ops:year-entries
+    ]

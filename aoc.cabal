@@ -42,9 +42,13 @@ library
   import:          language
   ghc-options:     -hiedir=.hie/lib
   hs-source-dirs:  src
+  build-depends:
+    , containers
+    , megaparsec
   exposed-modules:
     AoC.Registry
     AoC.Solution
+    -- ops:solution-modules
 
 executable aoc
   import:         language

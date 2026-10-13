@@ -1,0 +1,20 @@
+-- | Replace the generator stub with the statement's valid input grammar.
+module {{DAYMODULE}} (tests) where
+
+import AoC.Solution (render)
+import {{DAYMODULE}}.Primary qualified as Primary
+import Hedgehog (Gen, forAll, property, (===))
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Hedgehog (testProperty)
+-- ops:property-imports
+
+genInput :: Gen Text
+genInput = Gen.text (Range.linear 0 8) Gen.alpha
+
+tests :: TestTree
+tests = testGroup "{{DAYMODULE}}"
+    [
+    -- ops:property-entries
+    ]
