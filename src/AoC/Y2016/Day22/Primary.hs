@@ -9,7 +9,7 @@ unreachable or missing goal data uses the documented part-2 placeholder 0.
 -}
 module AoC.Y2016.Day22.Primary (solver) where
 
-import AoC.Grid (adjacent, orthogonal)
+import AoC.Grid (adjacent, indexedOrthogonal, orthogonal)
 import AoC.Search (shortestDistance, shortestIntDistance)
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day22.Input (Node (available, capacity, position, used), parseInput)
@@ -64,8 +64,7 @@ compactSearch walkable vacant goal
         shortestIntDistance moves ((== target) . (`mod` count)) (emptyIndex * count + goalIndex)
   where
     count = Set.size walkable
-    indices = Map.fromList (zip (Set.toList walkable) [0 ..])
-    edges = IntMap.fromList [(index, mapMaybe (`Map.lookup` indices) (orthogonal position)) | (position, index) <- Map.toList indices]
+    (indices, edges) = indexedOrthogonal walkable
     moves encoded = [source * count + if source == goalIndex then emptyIndex else goalIndex | source <- IntMap.findWithDefault [] emptyIndex edges]
       where
         (emptyIndex, goalIndex) = encoded `divMod` count

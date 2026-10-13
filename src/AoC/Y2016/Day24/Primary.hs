@@ -5,14 +5,13 @@ trade: Cache corridor adjacency once and use dense integer vertex keys for every
 -}
 module AoC.Y2016.Day24.Primary (solver) where
 
-import AoC.Grid (orthogonal)
+import AoC.Grid (indexedOrthogonal)
 import AoC.Search qualified as Search
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day24.Input (Input (locations, passages), parseInput)
 import Data.Bits (setBit, testBit)
 import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Strict qualified as Map
-import Data.Set qualified as Set
 
 type Distances = Map Int (Map Int Int)
 
@@ -30,8 +29,7 @@ solver text = do
 locationDistances :: Input -> Distances
 locationDistances input = Map.map fromLocation numbered
   where
-    indices = Map.fromList (zip (Set.toList input.passages) [0 ..])
-    edges = IntMap.fromList [(index, mapMaybe (`Map.lookup` indices) (orthogonal position)) | (position, index) <- Map.toList indices]
+    (indices, edges) = indexedOrthogonal input.passages
     numbered = Map.mapMaybe (`Map.lookup` indices) input.locations
     fromLocation origin = Map.mapMaybe (`IntMap.lookup` reached) numbered
       where
