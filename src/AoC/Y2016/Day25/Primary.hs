@@ -10,9 +10,12 @@ import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day25.Input (Input (Input), parseInput)
 import Data.Map.Strict qualified as Map
 
+data Bit = Zero | One
+    deriving stock (Eq, Ord)
+
 data Signal = Signal
     { machine :: Machine
-    , expected :: Integer
+    , expected :: Bit
     }
     deriving stock (Eq, Ord)
 
@@ -24,7 +27,17 @@ solver text = do
     pure (Answers (show seed) Nothing)
 
 clock :: Machine -> Integer -> Bool
-clock machine seed = verify mempty 0 (Signal machine{registers = Map.fromList [(A, seed), (B, 0), (C, 0), (D, 0)]} 0)
+clock machine seed = verify mempty 0 (Signal machine{registers = Map.fromList [(A, seed), (B, 0), (C, 0), (D, 0)]} Zero)
+
+flipBit :: Bit -> Bit
+flipBit = \case
+    Zero -> One
+    One -> Zero
+
+bitValue :: Bit -> Integer
+bitValue = \case
+    Zero -> 0
+    One -> 1
 
 -- Include the next expected bit in the key; a silent cycle emits no new bits.
 -- Every collapsed edge is finite and output-free, so repetition still proves
@@ -35,9 +48,9 @@ verify seen emitted signal = case Map.lookup signal seen of
     Nothing -> case current signal.machine of
         Nothing -> False
         Just (Output value)
-            | readValue value signal.machine /= signal.expected -> False
-            | otherwise -> continue 1 (1 - signal.expected)
+            | readValue value signal.machine /= bitValue signal.expected -> False
+            | otherwise -> continue 1 (flipBit signal.expected)
         Just _ -> continue 0 signal.expected
   where
-    continue :: Integer -> Integer -> Bool
+    continue :: Integer -> Bit -> Bool
     continue count expected = verify (Map.insert signal emitted seen) (emitted + count) (Signal (acceleratedStep signal.machine) expected)
