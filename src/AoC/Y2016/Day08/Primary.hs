@@ -6,7 +6,7 @@ trade: A set makes overlaps idempotent; exact font matching leaves non-text scre
 module AoC.Y2016.Day08.Primary (solver) where
 
 import AoC.Solution (Solver, answers)
-import AoC.Y2016.Day08.Input (Column (column), Height (height), Instruction (Rect, RotateColumn, RotateRow), Row (row), Width (width), parseInput)
+import AoC.Y2016.Day08.Input (Instruction (Rect, RotateColumn, RotateRow), column, height, parseInput, row, width)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 
@@ -23,18 +23,18 @@ solver text = do
 
 apply :: Screen -> Instruction -> Screen
 apply screen = \case
-    Rect extent tall -> screen `Set.union` Set.fromList [(x, y) | y <- [0 .. tall.height - 1], x <- [0 .. extent.width - 1]]
-    RotateRow line amount -> screen & Set.map (rotateRow line.row (fromIntegral (amount `mod` 50)))
-    RotateColumn line amount -> screen & Set.map (rotateColumn line.column (fromIntegral (amount `mod` 6)))
+    Rect extent tall -> screen `Set.union` Set.fromList [(x, y) | y <- [0 .. height tall - 1], x <- [0 .. width extent - 1]]
+    RotateRow line amount -> screen & Set.map (rotateRow (row line) (fromIntegral (amount `mod` 50)))
+    RotateColumn line amount -> screen & Set.map (rotateColumn (column line) (fromIntegral (amount `mod` 6)))
 
 rotateRow :: Int -> Int -> (Int, Int) -> (Int, Int)
-rotateRow row amount (x, y)
-    | y == row = ((x + amount) `mod` 50, y)
+rotateRow line amount (x, y)
+    | y == line = ((x + amount) `mod` 50, y)
     | otherwise = (x, y)
 
 rotateColumn :: Int -> Int -> (Int, Int) -> (Int, Int)
-rotateColumn column amount (x, y)
-    | x == column = (x, (y + amount) `mod` 6)
+rotateColumn line amount (x, y)
+    | x == line = (x, (y + amount) `mod` 6)
     | otherwise = (x, y)
 
 -- Non-letter displays, including the part-1 example, have no code and print 0.

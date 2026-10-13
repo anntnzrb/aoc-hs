@@ -3,10 +3,14 @@ their written value.
 -}
 module AoC.Y2016.Day08.Input (
     Instruction (Rect, RotateRow, RotateColumn),
-    Width (width),
-    Height (height),
-    Row (row),
-    Column (column),
+    Width,
+    Height,
+    Row,
+    Column,
+    width,
+    height,
+    row,
+    column,
     parseInput,
 ) where
 
@@ -16,28 +20,32 @@ import Text.Megaparsec.Char (char, eol, string)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
 
 -- | Rectangle width in pixels, from 0 through 50.
-newtype Width = Width
-    { width :: Int
-    -- ^ Pixels across, from 0 through 50.
-    }
+newtype Width = Width Int
+
+-- | Read pixels across, from 0 through 50; cannot change the bounded value.
+width :: Width -> Int
+width (Width value) = value
 
 -- | Rectangle height in pixels, from 0 through 6.
-newtype Height = Height
-    { height :: Int
-    -- ^ Pixels down, from 0 through 6.
-    }
+newtype Height = Height Int
+
+-- | Read pixels down, from 0 through 6; cannot change the bounded value.
+height :: Height -> Int
+height (Height value) = value
 
 -- | Zero-based row index, from 0 through 5.
-newtype Row = Row
-    { row :: Int
-    -- ^ Row index, from 0 through 5.
-    }
+newtype Row = Row Int
+
+-- | Read the row index, from 0 through 5; cannot change the bounded value.
+row :: Row -> Int
+row (Row value) = value
 
 -- | Zero-based column index, from 0 through 49.
-newtype Column = Column
-    { column :: Int
-    -- ^ Column index, from 0 through 49.
-    }
+newtype Column = Column Int
+
+-- | Read the column index, from 0 through 49; cannot change the bounded value.
+column :: Column -> Int
+column (Column value) = value
 
 -- | A screen edit; rotation counts wrap around the selected axis.
 data Instruction
