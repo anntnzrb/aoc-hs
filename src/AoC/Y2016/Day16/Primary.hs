@@ -1,14 +1,47 @@
 {- |
-approach: Unfinished scaffold; derive the algorithm from the statement.
-cost: No input traversal or solver work yet.
-trade: Placeholder until the statement-derived implementation is written.
+approach: Grow the reversed, complemented binary state; reduce equal pairs to bits.
+cost: O(n + D) time and memory for seed length n and disk size D; two seed passes.
+trade: Strict bytes keeps the literal transformation compact without mutable storage.
 -}
 module AoC.Y2016.Day16.Primary (solver) where
 
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day16.Input (Input (Input), parseInput)
+import Data.ByteString qualified as Bytes
 
 solver :: Solver
 solver text = do
-    Input _ <- parseInput text
-    pure (Answers "0" (Just "0"))
+    Input bits <- parseInput text
+    let seed = bits & toList & map encode & Bytes.pack
+    pure (Answers (decodeUtf8 (diskChecksum 272 seed)) (Just "0"))
+
+encode :: Bool -> Word8
+encode False = 48
+encode True = 49
+
+diskChecksum :: Int -> ByteString -> ByteString
+diskChecksum size seed =
+    iterate grow seed
+        & find ((>= size) . Bytes.length)
+        & fromMaybe seed
+        & Bytes.take size
+        & checksum
+
+grow :: ByteString -> ByteString
+grow bits = bits <> "0" <> (bits & Bytes.reverse & Bytes.map complement)
+  where
+    complement :: Word8 -> Word8
+    complement 48 = 49
+    complement _ = 48
+
+reduce :: ByteString -> ByteString
+reduce = Bytes.unfoldr pair
+  where
+    pair :: ByteString -> Maybe (Word8, ByteString)
+    pair bits = do
+        (a, rest) <- Bytes.uncons bits
+        (b, remaining) <- Bytes.uncons rest
+        pure (encode (a == b), remaining)
+
+checksum :: ByteString -> ByteString
+checksum bits = iterate reduce bits & find (odd . Bytes.length) & fromMaybe bits
