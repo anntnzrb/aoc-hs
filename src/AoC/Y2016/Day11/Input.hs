@@ -1,31 +1,31 @@
 -- | Four-floor inventory, with exactly one generator and chip per element.
-module AoC.Y2016.Day11.Input (Floor (FloorOne, FloorTwo, FloorThree, FloorFour), Input (Input), parseInput) where
+module AoC.Y2016.Day11.Input (Floor (FloorOne, FloorTwo, FloorThree, FloorFour), Component (Generator, Microchip), Locations (generatorFloor, microchipFloor), Input (Input), parseInput) where
 
+import AoC.Parse (Parser, parseText)
 import Data.Map.Strict qualified as Map
-import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse, sepBy1, try)
+import Text.Megaparsec (sepBy1, try)
 import Text.Megaparsec.Char (char, eol, lowerChar, string)
 
 data Floor = FloorOne | FloorTwo | FloorThree | FloorFour
     deriving stock (Eq, Ord)
 
-newtype Input = Input [(Floor, Floor)]
+newtype Input = Input (Map Text Locations)
+
+data Locations = Locations {generatorFloor :: Floor, microchipFloor :: Floor}
 
 data Component = Generator | Microchip
     deriving stock (Eq, Ord)
 
-type Parser = Parsec Void Text
-
 parseInput :: Text -> Either Text Input
 parseInput text = do
-    inventory <- parse inventoryParser "facility" text & first (toText . errorBundlePretty)
+    inventory <- parseText inventoryParser text
     pairs <- inventory & Map.fromListWith (<>) & traverse matchPair
-    pure (Input (Map.elems pairs))
+    pure (Input pairs)
 
 inventoryParser :: Parser [(Text, [(Component, Floor)])]
 inventoryParser = do
     floors <- sequence [floorParser floorNumber name | (floorNumber, name) <- zip [FloorOne, FloorTwo, FloorThree, FloorFour] ["first", "second", "third", "fourth"]]
     _ <- optional eol
-    eof
     pure (concat floors)
 
 floorParser :: Floor -> Text -> Parser [(Text, [(Component, Floor)])]
@@ -46,7 +46,7 @@ itemParser = do
     component <- Generator <$ string " generator" <|> Microchip <$ string "-compatible microchip"
     pure (element, component)
 
-matchPair :: [(Component, Floor)] -> Either Text (Floor, Floor)
+matchPair :: [(Component, Floor)] -> Either Text Locations
 matchPair components = case sort components of
-    [(Generator, generator), (Microchip, microchip)] -> Right (generator, microchip)
+    [(Generator, generator), (Microchip, microchip)] -> Right (Locations generator microchip)
     _invalid -> Left "Each element needs exactly one generator and one microchip"

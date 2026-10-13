@@ -8,7 +8,8 @@ module AoC.Y2016.Day10.Input (
     parseInput,
 ) where
 
-import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse, sepEndBy1)
+import AoC.Parse (Parser, parseText)
+import Text.Megaparsec (sepEndBy1)
 import Text.Megaparsec.Char (eol, string)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
 
@@ -19,15 +20,14 @@ newtype Chip = Chip Natural
     deriving newtype (Eq, Ord)
 
 data Destination = ToBot Bot | Output Natural
+    deriving stock (Eq, Ord)
 
 data Instruction = Give Chip Bot | Route Bot Destination Destination
 
 newtype Input = Input [Instruction]
 
-type Parser = Parsec Void Text
-
 parseInput :: Text -> Either Text Input
-parseInput = parse (Input <$> instruction `sepEndBy1` eol <* eof) "instructions" >>> first (toText . errorBundlePretty)
+parseInput = parseText (Input <$> instruction `sepEndBy1` eol)
 
 instruction :: Parser Instruction
 instruction =

@@ -6,7 +6,7 @@ trade: A set makes overlaps idempotent; exact font matching leaves non-text scre
 module AoC.Y2016.Day08.Primary (solver) where
 
 import AoC.Solution (Answers (Answers), Solver)
-import AoC.Y2016.Day08.Input (Instruction (Rect, RotateColumn, RotateRow), parseInput)
+import AoC.Y2016.Day08.Input (Column (column), Height (height), Instruction (Rect, RotateColumn, RotateRow), Row (row), Width (width), parseInput)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 
@@ -16,25 +16,47 @@ solver :: Solver
 solver text = do
     instructions <- parseInput text
     let screen = foldl' apply Set.empty instructions
-    pure (Answers (show (Set.size screen)) (Just (decode screen)))
+    pure (Answers (show (Set.size screen)) (Just (fromMaybe "0" (decode screen))))
 
 apply :: Screen -> Instruction -> Screen
 apply screen = \case
-    Rect width height -> screen `Set.union` Set.fromList [(x, y) | y <- [0 .. height - 1], x <- [0 .. width - 1]]
-    RotateRow row amount -> screen & Set.map (\(x, y) -> (if y == row then (x + amount) `mod` 50 else x, y))
-    RotateColumn column amount -> screen & Set.map (\(x, y) -> (x, if x == column then (y + amount) `mod` 6 else y))
+    Rect extent tall -> screen `Set.union` Set.fromList [(x, y) | y <- [0 .. tall.height - 1], x <- [0 .. extent.width - 1]]
+    RotateRow line amount -> screen & Set.map (rotateRow line.row (fromIntegral (amount `mod` 50)))
+    RotateColumn line amount -> screen & Set.map (rotateColumn line.column (fromIntegral (amount `mod` 6)))
+
+rotateRow :: Int -> Int -> (Int, Int) -> (Int, Int)
+rotateRow row amount (x, y)
+    | y == row = ((x + amount) `mod` 50, y)
+    | otherwise = (x, y)
+
+rotateColumn :: Int -> Int -> (Int, Int) -> (Int, Int)
+rotateColumn column amount (x, y)
+    | x == column = (x, (y + amount) `mod` 6)
+    | otherwise = (x, y)
 
 -- Non-letter displays, including the part-1 example, have no code and print 0.
-decode :: Screen -> Text
-decode screen = [0, 5 .. 45] & traverse (glyph >>> (`Map.lookup` alphabet)) & maybe "0" toText
+decode :: Screen -> Maybe Text
+decode screen =
+    [0, 5 .. 45]
+        & traverse (glyph >>> (`Map.lookup` alphabet))
+        <&> toText
   where
     glyph start = [if Set.member (x, y) screen then '#' else '.' | y <- [0 .. 5], x <- [start .. start + 4]] & toText
 
--- Visual transcription of the observed 5x6 capital-letter font, not a code token.
+-- Visual transcription of the 5x6 capital-letter font. Only the originally
+-- observed Z, J, H, R, K, C, P, L and Y glyphs are verified against real output.
 alphabet :: Map Text Char
 alphabet =
     Map.fromList
-        [ ("####." <> "...#." <> "..#.." <> ".#..." <> "#...." <> "####.", 'Z')
+        [ (".##.." <> "#..#." <> "#..#." <> "####." <> "#..#." <> "#..#.", 'A')
+        , ("###.." <> "#..#." <> "###.." <> "#..#." <> "#..#." <> "###..", 'B')
+        , ("####." <> "#...." <> "###.." <> "#...." <> "#...." <> "####.", 'E')
+        , ("####." <> "#...." <> "###.." <> "#...." <> "#...." <> "#....", 'F')
+        , (".##.." <> "#..#." <> "#...." <> "#.##." <> "#..#." <> ".###.", 'G')
+        , (".##.." <> "#..#." <> "#..#." <> "#..#." <> "#..#." <> ".##..", 'O')
+        , (".###." <> "#...." <> "#...." <> ".##.." <> "...#." <> "###..", 'S')
+        , ("#..#." <> "#..#." <> "#..#." <> "#..#." <> "#..#." <> ".##..", 'U')
+        , ("####." <> "...#." <> "..#.." <> ".#..." <> "#...." <> "####.", 'Z')
         , ("..##." <> "...#." <> "...#." <> "...#." <> "#..#." <> ".##..", 'J')
         , ("#..#." <> "#..#." <> "####." <> "#..#." <> "#..#." <> "#..#.", 'H')
         , ("###.." <> "#..#." <> "#..#." <> "###.." <> "#.#.." <> "#..#.", 'R')
