@@ -22,9 +22,9 @@ advance candidate (lower, upper)
     | otherwise = candidate
 
 allowedCount :: [(Integer, Integer)] -> Integer
-allowedCount ranges =
-    let (next, gaps) = foldl' countGap (0, 0) ranges
-     in gaps + addressCount - next
+allowedCount ranges = gaps + addressCount - next
+  where
+    (next, gaps) = foldl' countGap (0, 0) ranges
 
 countGap :: (Integer, Integer) -> (Integer, Integer) -> (Integer, Integer)
 countGap (next, gaps) (lower, upper) =
