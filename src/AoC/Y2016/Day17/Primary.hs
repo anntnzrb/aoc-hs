@@ -47,7 +47,7 @@ solver text = do
                 & iterate (concatMap nextRoutes)
                 & takeWhile (not . null)
                 & concatMap (filter atVault)
-        shortest = arrivals & find (const True) & maybe "0" routeText
+        shortest = arrivals & listToMaybe & maybe "0" routeText
         longest = arrivals & foldl' (\best route -> max best route.depth) 0
     answers shortest (Just (show longest))
 
