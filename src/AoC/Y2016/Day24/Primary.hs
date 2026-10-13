@@ -25,9 +25,12 @@ solver text = do
     input <- parseInput text
     let distances = locationDistances input
         routes = foldl' (\states _ -> extend distances states) (one ((setBit 0 0, 0), 0)) [1 .. Map.size input.locations - 1]
-    answer <- viaNonEmpty (\(value :| values) -> foldl' min value values) (Map.elems routes) & maybeToRight "Unreachable numbered location"
-    returning <- viaNonEmpty (\(value :| values) -> foldl' min value values) [cost + distance | ((_, endpoint), cost) <- Map.toList routes, Just distance <- [Map.lookup endpoint distances >>= Map.lookup 0]] & maybeToRight "Cannot return to starting location"
+    answer <- minimumRoute (Map.elems routes) & maybeToRight "Unreachable numbered location"
+    returning <- minimumRoute [cost + distance | ((_, endpoint), cost) <- Map.toList routes, Just distance <- [Map.lookup endpoint distances >>= Map.lookup 0]] & maybeToRight "Cannot return to starting location"
     answers (show answer) (Just (show returning))
+  where
+    minimumRoute :: [Int] -> Maybe Int
+    minimumRoute = viaNonEmpty (\(value :| values) -> foldl' min value values)
 
 locationDistances :: Input -> Distances
 locationDistances input = Map.map fromLocation numbered
