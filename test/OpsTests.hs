@@ -3,7 +3,7 @@ module OpsTests (tests) where
 
 import Data.Text qualified as T
 import Ops.Benchmark (Result (Result), row)
-import Ops.Command (moduleName)
+import Ops.Command (moduleName, parseNumber)
 import Ops.Haddock (checkHaddock)
 import Ops.Logic (Verdict (AlreadyComplete, Cooldown, RightAnswer, UnknownResponse, WrongAnswer), articleText, classify, docViolations, refuseExisting, statement, validAnswer)
 import Ops.Measurement (Sample (Sample), Stats (Stats), canonical, cpuList, cpuStats, csvHeader, csvRow, parsePerf, parsePerfCpu, parseUsage, perfUnavailable, runCount, stats)
@@ -18,7 +18,13 @@ protocolTests :: TestTree
 protocolTests =
     testGroup
         "protocol"
-        [ testCase "answer tokens" $ do
+        [ testCase "numeric arguments reject overflow before conversion" $ do
+            map (isLeft . parseNumber "YEAR" (2015, 9999)) ["18446744073709553631", "-18446744073709549601"] @?= [True, True]
+            isLeft (parseNumber "DAY" (1, 25) "18446744073709551617") @?= True
+            isLeft (parseNumber "PART" (1, 2) "18446744073709551617") @?= True
+            traverse (parseNumber "YEAR" (2015, 9999)) ["2015", "9999"] @?= Right [2015, 9999]
+            map (isLeft . parseNumber "PART" (1, 2)) ["0", "3", "oops"] @?= replicate 3 True
+        , testCase "answer tokens" $ do
             map validAnswer ["123", "abc-Z,9", "0"] @?= [True, True, True]
             map validAnswer ["", "bad answer", "a\nb", "é", "a&b"] @?= replicate 5 False
         , testCase "submission classifications" $
@@ -69,6 +75,13 @@ registrationTests =
     testGroup
         "registration anchors"
         [ testCase "existing year retains valid root anchors" $ isRight (scaffold (2015, 2) Nothing (registrationFiles rootSource)) @?= True
+        , testCase "no new test module leaves its cabal anchor unchanged" $ do
+            let result = scaffold (2015, 2) Nothing (registrationFiles rootSource)
+                cabal = result <&> (filter ((== "aoc.cabal") . fst) >>> map snd)
+            fmap (not . any (T.isInfixOf "\n\n    -- ops:test-modules")) cabal @?= Right True
+        , testCase "existing property modules accept exploration registration" $ do
+            let files = registrationFiles rootSource <> [("src/AoC/Y2015/Day02/Primary.hs", "primary"), ("test/Main.hs", "existing main"), ("test/AoC/Y2015/Day02.hs", "-- ops:property-imports\ntests = testGroup \"day\"\n    [ testCase \"existing\" (pure ())\n    -- ops:property-entries\n    ]\n")]
+            isRight (scaffold (2015, 2) (Just "Probe") files) @?= True
         , testCase "existing year rejects missing root anchors" $
             traverse_ (\anchor -> scaffold (2015, 2) Nothing (registrationFiles (T.replace anchor "" rootSource)) @?= Left ("missing or ambiguous scaffold anchor: " <> anchor)) rootAnchors
         , testCase "existing year rejects duplicate root anchors" $

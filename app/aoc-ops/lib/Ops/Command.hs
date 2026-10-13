@@ -1,5 +1,5 @@
 -- | CLI operations. Every external action runs through Runtime.
-module Ops.Command (Command, commandParser, moduleName, execute) where
+module Ops.Command (Command, commandParser, moduleName, parseNumber, execute) where
 
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.Text qualified as T
@@ -34,13 +34,15 @@ commandParser =
     day = number "DAY" 1 25
 
 number :: String -> Int -> Int -> Parser Int
-number label minimum' maximum' = argument (eitherReader bounded) (metavar label)
-  where
-    bounded text = case readMaybe text of
-        Just value
-            | minimum' <= value && value <= maximum' -> Right value
-            | otherwise -> Left (label <> " out of range")
-        Nothing -> Left (label <> " must be an integer")
+number label minimum' maximum' = argument (eitherReader (parseNumber label (minimum', maximum'))) (metavar label)
+
+-- | Parse without machine overflow, then enforce inclusive argument bounds.
+parseNumber :: String -> (Int, Int) -> String -> Either String Int
+parseNumber label (minimum', maximum') text = case readMaybe @Integer text of
+    Just value
+        | toInteger minimum' <= value && value <= toInteger maximum' -> Right (fromInteger value)
+        | otherwise -> Left (label <> " out of range")
+    Nothing -> Left (label <> " must be an integer")
 
 moduleName :: String -> Either String Text
 moduleName name = case name of

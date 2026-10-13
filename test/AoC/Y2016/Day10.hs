@@ -5,6 +5,8 @@ import AoC.Y2016.Day10.Primary qualified as Bots
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 
+-- ops:property-imports
+
 tests :: TestTree
 tests =
     testGroup
@@ -15,6 +17,7 @@ tests =
             , testCase "two-bot cycle fails" twoBotCycle
             , testCase "finite route retains output product" finiteRoute
             ]
+            -- ops:property-entries
         ]
 
 selfLoop :: IO ()

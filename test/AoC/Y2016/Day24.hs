@@ -11,10 +11,18 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog (testProperty)
 
+-- ops:property-imports
+
 type Position = (Int, Int)
 
 tests :: TestTree
-tests = testGroup "2016/24 coordinate routes" [testProperty "tiny maps and sparse labels" maps, testCase "disconnected targets" (fmap render (solver "0#9\n") @?= Left "Unreachable numbered location")]
+tests =
+    testGroup
+        "2016/24 coordinate routes"
+        [ testProperty "tiny maps and sparse labels" maps
+        , testCase "disconnected targets" (fmap render (solver "0#9\n") @?= Left "Unreachable numbered location")
+        -- ops:property-entries
+        ]
 
 maps :: Property
 maps =

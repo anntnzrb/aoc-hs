@@ -5,8 +5,16 @@ import AoC.Y2016.Day08.Primary qualified as Screen
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 
+-- ops:property-imports
+
 tests :: TestTree
-tests = testGroup "2016/08" [parserCases, screenCases]
+tests =
+    testGroup
+        "2016/08"
+        [ parserCases
+        , screenCases
+        -- ops:property-entries
+        ]
 
 parserCases :: TestTree
 parserCases =

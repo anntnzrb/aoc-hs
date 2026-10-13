@@ -9,9 +9,8 @@ import Data.Text qualified as T
 import Effectful (Eff, (:>))
 import Ops.Measurement (Sample (Sample, rss, wall), Stats (maximum, median, minimum), canonical, cpuList, cpuStats, csvHeader, csvRow, parsePerf, perfUnavailable, runCount, stats)
 import Ops.Process (abort, cpuTime, peakRss, process, processStatus, timed, utc)
-import Ops.Runtime (Runtime, exists, output, readText, writeText)
+import Ops.Runtime (Runtime, executable, exists, output, readText, writeText)
 import Ops.Scaffold (dayText)
-import System.Directory (findExecutable)
 import System.Exit (ExitCode (ExitSuccess))
 import System.Info (os)
 
@@ -109,8 +108,8 @@ probePerf :: (Runtime :> es) => [String] -> Eff es (Bool, Text, [Text])
 probePerf pin
     | os /= "linux" = pure (False, "unavailable on macOS", ["Work, whole-process instructions and CPU time unavailable on macOS; no substitute metric."])
     | otherwise = do
-        executable <- liftIO (findExecutable "perf")
-        case executable of
+        perfPath <- executable "perf"
+        case perfPath of
             Nothing -> pure (False, "not installed", ["Work, whole-process instructions and CPU time unavailable: perf is not installed."])
             Just _path -> do
                 (version, _) <- process "perf" ["--version"] ""

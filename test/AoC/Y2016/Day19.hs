@@ -5,11 +5,18 @@ import AoC.Y2016.Day19.Primary (solver)
 import Hedgehog (Property, forAll, property, withTests, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Test.Tasty (TestTree)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
 
+-- ops:property-imports
+
 tests :: TestTree
-tests = testProperty "2016/19 literal circles" circles
+tests =
+    testGroup
+        "2016/19"
+        [ testProperty "2016/19 literal circles" circles
+        -- ops:property-entries
+        ]
 
 circles :: Property
 circles =

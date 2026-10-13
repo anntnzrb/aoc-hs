@@ -153,31 +153,6 @@ test-suite test
   hs-source-dirs: test
   main-is:        Main.hs
   other-modules: OpsTests AoC.AssembunnyTests AoC.MD5Tests AoC.SearchTests AoC.GridTests AoC.ParseTests AoC.SharedTests AoC.SolutionTests AoC.Y2016.Tests AoC.Y2016.Day08 AoC.Y2016.Day09 AoC.Y2016.Day10 AoC.Y2016.Day11 AoC.Y2016.Day16 AoC.Y2016.Day18 AoC.Y2016.Day19 AoC.Y2016.Day21 AoC.Y2016.Day22 AoC.Y2016.Day24
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     -- ops:test-modules
   build-depends:
     , bytestring

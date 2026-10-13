@@ -1,14 +1,18 @@
 module AoC.Y2016.Day21 (tests) where
 
 import AoC.Solution (render)
-import AoC.Y2016.Day21.Input (parseInput)
+import AoC.Y2016.Day21.Input (Direction (Leftward, Rightward), Operation (Move, Reverse, Rotate, RotateLetter, SwapLetter, SwapPosition), bounds, letterValue, parseInput)
 import AoC.Y2016.Day21.Primary (solver)
-import Hedgehog (Gen, Property, evalEither, forAll, property, (===))
+import Data.List (elemIndex)
+import Data.Text qualified as T
+import Hedgehog (Gen, Property, evalEither, failure, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog (testProperty)
+
+-- ops:property-imports
 
 tests :: TestTree
 tests =
@@ -27,7 +31,8 @@ tests =
             isLeft (solver "rotate based on position of letter z") @?= True
         , testCase "reversed spans are rejected" $
             isLeft (parseInput "reverse positions 6 through 2") @?= True
-        , testProperty "valid operations preserve both password permutations" passwordPermutations
+        , testProperty "literal scrambling and inverse agree" passwordPermutations
+        -- ops:property-entries
         ]
 
 invalidPositions :: [Text]
@@ -44,8 +49,13 @@ invalidPositions =
 passwordPermutations :: Property
 passwordPermutations = property $ do
     operations <- forAll (Gen.list (Range.linear 1 80) operation)
+    parsed <- evalEither (parseInput (unlines operations))
     result <- evalEither (solver (unlines operations))
-    map (toString >>> sort) (lines (render result)) === map sort ["abcdefgh", "fbgdceah"]
+    case lines (render result) of
+        [scrambled, recovered] -> do
+            scrambled === toText (scramble parsed "abcdefgh")
+            toText (scramble parsed (toString recovered)) === "fbgdceah"
+        _outputs -> failure
 
 operation :: Gen Text
 operation = do
@@ -63,3 +73,37 @@ operation = do
         , "reverse positions " <> show (min x y) <> " through " <> show (max x y)
         , "move position " <> show x <> " to position " <> show y
         ]
+
+-- A literal list edit for each statement operation; no inverse implementation.
+scramble :: [Operation] -> [Char] -> [Char]
+scramble operations password = foldl' edit password operations
+
+edit :: [Char] -> Operation -> [Char]
+edit password = \case
+    SwapPosition x y -> [at (if i == fromIntegral x then fromIntegral y else if i == fromIntegral y then fromIntegral x else i) | i <- [0 .. 7]]
+    SwapLetter a b -> map (\letter -> if letter == letterValue a then letterValue b else if letter == letterValue b then letterValue a else letter) password
+    Rotate direction count -> rotateList (case direction of Leftward -> count; Rightward -> (8 - count `mod` 8) `mod` 8) password
+    RotateLetter letter -> rotateLetter (letterValue letter) password
+    Reverse spanValue ->
+        let (start, end) = bounds spanValue
+            lo = fromIntegral start
+            size = fromIntegral (end - start + 1)
+         in take lo password <> (take size (drop lo password) & toText & T.reverse & toString) <> drop (lo + size) password
+    Move x y ->
+        let source = fromIntegral x
+            target = fromIntegral y
+            remaining = take source password <> drop (source + 1) password
+         in take target remaining <> [at source] <> drop target remaining
+  where
+    at index = fromMaybe '?' (viaNonEmpty head (drop index password))
+
+rotateLetter :: Char -> [Char] -> [Char]
+rotateLetter letter password = rotateList (fromIntegral ((8 - amount `mod` 8) `mod` 8)) password
+  where
+    index = fromMaybe 0 (elemIndex letter password)
+    amount = 1 + index + if index >= 4 then 1 else 0
+
+rotateList :: Natural -> [Char] -> [Char]
+rotateList count password = drop steps password <> take steps password
+  where
+    steps = fromIntegral (count `mod` 8)

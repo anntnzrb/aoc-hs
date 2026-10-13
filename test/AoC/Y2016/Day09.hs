@@ -6,6 +6,8 @@ import AoC.Y2016.Day09.Primary qualified as Primary
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 
+-- ops:property-imports
+
 tests :: TestTree
 tests =
     testGroup
@@ -19,4 +21,5 @@ tests =
             ]
         , testCase "zero copies discard malformed nested payload" $
             (render <$> Primary.solver "A(1x0)(B") @?= Right "2\n2\n"
+            -- ops:property-entries
         ]

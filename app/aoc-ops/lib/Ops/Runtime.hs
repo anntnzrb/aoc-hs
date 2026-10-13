@@ -1,12 +1,12 @@
 -- | Runtime effect interpreter. Authentication never leaves the HTTP boundary.
-module Ops.Runtime (Runtime, runRuntime, readText, writeText, exists, isDirectory, makeDirectory, directories, http, output, formatFiles) where
+module Ops.Runtime (Runtime, runRuntime, readText, writeText, exists, isDirectory, makeDirectory, directories, http, output, formatFiles, executable) where
 
 import Data.Text qualified as T
 import Effectful (Eff, IOE, runEff, (:>))
 import Network.HTTP.Client (Request (checkResponse, redirectCount, requestHeaders), httpLbs, newManager, parseRequest, responseBody, responseStatus, urlEncodedBody)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types.Status (statusCode)
-import System.Directory (createDirectoryIfMissing, doesDirectoryExist, doesPathExist, listDirectory)
+import System.Directory (createDirectoryIfMissing, doesDirectoryExist, doesPathExist, findExecutable, listDirectory)
 import System.FilePath (takeDirectory)
 import System.Process (callProcess)
 
@@ -37,6 +37,9 @@ makeDirectory path = liftIO (createDirectoryIfMissing True path)
 
 directories :: (Runtime :> es) => FilePath -> Eff es [FilePath]
 directories path = liftIO (listDirectory path)
+
+executable :: (Runtime :> es) => String -> Eff es (Maybe FilePath)
+executable name = liftIO (findExecutable name)
 
 http :: (Runtime :> es) => Text -> Maybe [(ByteString, ByteString)] -> Eff es (Int, Text)
 http url body = liftIO (authenticatedRequest url body)

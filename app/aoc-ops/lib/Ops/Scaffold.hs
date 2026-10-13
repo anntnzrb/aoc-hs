@@ -38,8 +38,9 @@ substitute (year, day) name source = foldl' replace source [("YEAR", show year),
 
 insertAt :: Text -> Text -> Text -> Either Text Text
 insertAt anchor insertion source
-    | T.count anchor source == 1 = Right (T.replace anchor (insertion <> "\n" <> anchor) source)
-    | otherwise = Left ("missing or ambiguous scaffold anchor: " <> anchor)
+    | T.count anchor source /= 1 = Left ("missing or ambiguous scaffold anchor: " <> anchor)
+    | T.null insertion = Right source
+    | otherwise = Right (T.replace anchor (insertion <> "\n" <> anchor) source)
 
 registration :: (Int, Int) -> Maybe Text -> [(FilePath, Text)] -> Either Text [(FilePath, Text)]
 registration (year, day) exploration files = do
@@ -118,8 +119,8 @@ cabalRegistration modules propertyPaths files = do
 propertyRegistration :: (Int, Int) -> [(FilePath, Text)] -> Text -> Either Text [(FilePath, Text)]
 propertyRegistration (year, day) files name = do
     source <- lookup path files & maybe (lookup "templates/Property.hs.template" files & maybe (Left "missing property template") (Right . substitute (year, day) name)) Right
-    imported <- insertAt "-- ops:property-imports" ("import " <> dayModule year day <> "." <> name <> " qualified as " <> name) source
-    propertyText <- insertAt "    -- ops:property-entries" (prefix source <> "testProperty \"" <> name <> " agrees with primary\" (property (do { input <- forAll genInput; fmap render (" <> name <> ".solver input) === fmap render (Primary.solver input) }))") imported
+    imported <- insertAt "-- ops:property-imports" (propertyImports (dayModule year day) (name, source)) source
+    propertyText <- insertAt "    -- ops:property-entries" (propertyPrefix source <> propertyEntry name source) imported
     mainSource <- lookup "test/Main.hs" files & maybeToRight "missing test Main"
     wired <-
         if isJust (lookup path files)
@@ -136,3 +137,27 @@ preflightDirectories :: [(FilePath, Bool)] -> Either Text ()
 preflightDirectories states = case [toText path | (path, False) <- states] of
     [] -> Right ()
     blocked -> Left ("not a directory: " <> T.intercalate ", " blocked)
+
+-- Existing test modules need only anchors; generated imports do not depend on
+-- their aliases. The empty generator is a scaffold stub to replace with grammar.
+propertyImports :: Text -> (Text, Text) -> Text
+propertyImports day (name, source) =
+    unlines (["import " <> day <> "." <> name <> " qualified as " <> name] <> filter (not . (`T.isInfixOf` source)) support)
+  where
+    support =
+        if "genInput ::" `T.isInfixOf` source
+            then []
+            else
+                [ "import " <> day <> ".Primary qualified as OpsPrimary"
+                , "import AoC.Solution qualified as OpsAnswers"
+                , "import Hedgehog qualified as OpsProperty"
+                , "import Test.Tasty.Hedgehog qualified as OpsTests"
+                ]
+
+propertyEntry :: Text -> Text -> Text
+propertyEntry name source
+    | "genInput ::" `T.isInfixOf` source = "testProperty \"" <> name <> " agrees with primary\" (property (do { input <- forAll genInput; fmap render (" <> name <> ".solver input) === fmap render (Primary.solver input) }))"
+    | otherwise = "OpsTests.testProperty \"" <> name <> " agrees with primary\" (OpsProperty.property (do { input <- OpsProperty.forAll (pure (\"\" :: Text)); fmap OpsAnswers.render (" <> name <> ".solver input) OpsProperty.=== fmap OpsAnswers.render (OpsPrimary.solver input) }))"
+
+propertyPrefix :: Text -> Text
+propertyPrefix source = bool "      " "    , " (any (`T.isInfixOf` source) ["testProperty \"", "testCase \""])
