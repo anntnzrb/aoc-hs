@@ -1,27 +1,40 @@
--- | Screen instructions; dimensions and indices are bounded when parsed.
-module AoC.Y2016.Day08.Input (Instruction (Rect, RotateRow, RotateColumn), parseInput) where
+-- | Screen instructions with bounded dimensions and indices; rotation amounts retain their written value.
+module AoC.Y2016.Day08.Input (
+    Instruction (Rect, RotateRow, RotateColumn),
+    Width (width),
+    Height (height),
+    Row (row),
+    Column (column),
+    parseInput,
+) where
 
-import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse, sepEndBy1)
+import AoC.Parse (Parser, boundedDecimal, parseText)
+import Text.Megaparsec (sepEndBy1)
 import Text.Megaparsec.Char (char, eol, string)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
 
-data Instruction = Rect Int Int | RotateRow Int Int | RotateColumn Int Int
+newtype Width = Width {width :: Int}
+newtype Height = Height {height :: Int}
+newtype Row = Row {row :: Int}
+newtype Column = Column {column :: Int}
 
-type Parser = Parsec Void Text
+data Instruction = Rect Width Height | RotateRow Row Natural | RotateColumn Column Natural
 
 parseInput :: Text -> Either Text [Instruction]
-parseInput = parse (instruction `sepEndBy1` eol <* eof) "screen" >>> first (errorBundlePretty >>> toText)
+parseInput = parseText (instruction `sepEndBy1` eol)
 
 instruction :: Parser Instruction
 instruction =
-    (Rect <$> (string "rect " *> bounded 50) <* char 'x' <*> bounded 6)
-        <|> (RotateRow <$> (string "rotate row y=" *> bounded 5) <* string " by " <*> shift 50)
-        <|> (RotateColumn <$> (string "rotate column x=" *> bounded 49) <* string " by " <*> shift 6)
+    (Rect <$> (string "rect " *> (Width <$> bounded 50)) <* char 'x' <*> (Height <$> bounded 6))
+        <|> (RotateRow <$> (string "rotate row y=" *> (Row <$> bounded 5)) <* string " by " <*> Lexer.decimal)
+        <|> (RotateColumn <$> (string "rotate column x=" *> (Column <$> bounded 49)) <* string " by " <*> Lexer.decimal)
 
 bounded :: Int -> Parser Int
 bounded limit = do
-    value <- (Lexer.decimal :: Parser Integer)
-    if value <= toInteger limit then pure (fromInteger value) else fail "Outside screen bounds"
-
-shift :: Int -> Parser Int
-shift modulus = (Lexer.decimal :: Parser Integer) <&> (fromInteger . (`mod` toInteger modulus))
+    value <- boundedDecimal
+    withinBounds value
+  where
+    withinBounds :: Int -> Parser Int
+    withinBounds value
+        | value <= limit = pure value
+        | otherwise = fail "Outside screen bounds"
