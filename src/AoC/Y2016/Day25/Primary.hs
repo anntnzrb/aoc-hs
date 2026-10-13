@@ -1,6 +1,6 @@
 {- |
-approach: Try positive seeds in order, collapsing verified terminating arithmetic loops until a mismatch, halt or repeated complete state proves a productive alternating cycle.
-cost: O(n + tn log s) time and O(sn) memory for n instructions, t total interpreted or collapsed steps and s distinct states in the largest trial; one parse pass and one indexing pass, with integer arithmetic costs additional.
+approach: Try positive seeds in order, collapsing verified terminating arithmetic loops until a mismatch, halt or repeated complete state proves a productive alternating cycle; requires eventual full-state recurrence for infinite trials.
+cost: O(n + tn log s) time and O(sn) memory for terminating trials with n instructions, t total interpreted or collapsed steps and s distinct states in the largest trial; infinite trials require eventual full-state recurrence. One parse pass and one indexing pass, with integer arithmetic costs additional.
 trade: Exact cycle detection still includes the live program and expected bit; skipping only finite output-free loops preserves the proof while avoiding repeated arithmetic instructions.
 -}
 module AoC.Y2016.Day25.Primary (solver) where
@@ -20,7 +20,10 @@ data Signal = Signal
     deriving stock (Eq, Ord)
 
 {- | Return the smallest positive register-a seed proving an infinite alternating 0/1
-clock; no computational second answer. Input grammar errors are returned as text.
+clock; no computational second answer. Each infinite trial must eventually recur
+in its complete machine state, and a qualifying positive seed must exist. An
+alternating clock incrementing a dead register forever does not terminate this
+search. Input grammar errors are returned as text.
 -}
 solver :: Solver
 solver text = do
@@ -45,6 +48,10 @@ bitValue = \case
 -- Include the next expected bit in the key; a silent cycle emits no new bits.
 -- Every collapsed edge is finite and output-free, so repetition still proves
 -- repetition of the complete original machine with the same output phase.
+
+{- | Verify a trial; infinite execution must eventually repeat its complete signal
+state, including all registers, the live program and the expected output bit.
+-}
 verify :: Map Signal Integer -> Integer -> Signal -> Bool
 verify seen emitted signal = case Map.lookup signal seen of
     Just previous -> emitted > previous
