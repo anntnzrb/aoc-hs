@@ -1,7 +1,8 @@
 -- | Inclusive, ordered ranges of unsigned 32-bit addresses.
 module AoC.Y2016.Day20.Input (Range, bounds, addressCount, parseInput) where
 
-import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse, sepEndBy1)
+import AoC.Parse (Parser, parseText)
+import Text.Megaparsec (sepEndBy1)
 import Text.Megaparsec.Char (char, eol)
 import Text.Megaparsec.Char.Lexer (decimal)
 
@@ -14,12 +15,11 @@ addressCount :: Integer
 addressCount = 4294967296
 
 parseInput :: Text -> Either Text [Range]
-parseInput = parse (range `sepEndBy1` eol <* eof) "blacklist" >>> first (toText . errorBundlePretty)
+parseInput = parseText (range `sepEndBy1` eol)
 
-range :: Parsec Void Text Range
+range :: Parser Range
 range = do
     lower <- decimal
     upper <- char '-' *> decimal
-    if lower <= upper && upper < addressCount
-        then pure (Range lower upper)
-        else fail "expected an ordered range of unsigned 32-bit addresses"
+    when (lower > upper || upper >= addressCount) (fail "expected an ordered range of unsigned 32-bit addresses")
+    pure (Range lower upper)

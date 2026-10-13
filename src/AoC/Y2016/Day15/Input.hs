@@ -1,7 +1,8 @@
 -- | Discs numbered by arrival second, with positive sizes and valid positions.
 module AoC.Y2016.Day15.Input (Disc (number, positions, initial), disc, parseInput) where
 
-import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse, sepEndBy1)
+import AoC.Parse (Parser, parseText)
+import Text.Megaparsec (sepEndBy1)
 import Text.Megaparsec.Char (eol, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 
@@ -19,9 +20,9 @@ disc number positions initial
     | otherwise = Right (Disc number positions initial)
 
 parseInput :: Text -> Either Text [Disc]
-parseInput = parse (discParser `sepEndBy1` eol <* eof) "discs" >>> first (toText . errorBundlePretty)
+parseInput = parseText (discParser `sepEndBy1` eol)
 
-discParser :: Parsec Void Text Disc
+discParser :: Parser Disc
 discParser = do
     number <- string "Disc #" *> decimal
     positions <- string " has " *> decimal

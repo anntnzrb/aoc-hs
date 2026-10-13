@@ -15,7 +15,10 @@ solver text = do
     pure (Answers (show (safeTiles 40 (toList row))) (Just (show (safeTiles 400000 (toList row)))))
 
 safeTiles :: Int -> [Tile] -> Int
-safeTiles rows row = iterate nextRow encoded & take rows & foldl' countSafe 0
+safeTiles rows row =
+    iterate nextRow encoded
+        & take rows
+        & foldl' countSafe 0
   where
     width = foldl' (\total _ -> total + 1) 0 row
     mask = bit width - 1

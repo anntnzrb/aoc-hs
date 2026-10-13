@@ -17,7 +17,10 @@ leftWinner :: Integer -> Integer
 leftWinner count = 2 * (count - power) + 1
   where
     -- Removing every second seat gives J(2m)=2J(m)-1, J(2m+1)=2J(m)+1.
-    power = iterate (* 2) 1 & takeWhile (<= count) & foldl' max 1
+    power =
+        iterate (* 2) 1
+            & takeWhile (<= count)
+            & foldl' max 1
 
 acrossWinner :: Integer -> Integer
 acrossWinner count
@@ -28,4 +31,7 @@ acrossWinner count
     -- Undoing rotation and reinserting the opposite seat increments the winner
     -- by one below half the new size, wraps size-1 to one, otherwise adds two.
     -- Starting at W(p)=p, this gives +1 until 2p, then +2 until W(3p)=3p.
-    power = iterate (* 3) 1 & takeWhile (<= count) & foldl' max 1
+    power =
+        iterate (* 3) 1
+            & takeWhile (<= count)
+            & foldl' max 1
