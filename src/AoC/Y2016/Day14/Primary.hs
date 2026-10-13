@@ -1,11 +1,11 @@
 {- |
 approach: Share a lazy stream of hash summaries; a candidate's first triplet
 must match a quintuple in the following thousand summaries. Take 64 keys in
-index order, without skipping hashes used to confirm earlier candidates.
-cost: O(N * (L + log N + W)) time, O(W + L + log N) live memory for salt
-length L and lookahead W = 1000; one input pass and one index traversal.
-trade: Cached lazy lookahead hashes each index once and keeps the matching
-rule direct, at the cost of scanning the bounded window for each triplet.
+index order, using one MD5 round or 2017 successive lowercase-hex rounds.
+cost: O(N * (L + log N + R + W)) time, O(W + L + log N) live memory for salt
+length L, rounds R and lookahead W = 1000; one input pass, two index traversals.
+trade: Cached lazy lookahead hashes each index once per part and keeps the
+matching rule direct, at the cost of scanning a bounded window per triplet.
 -}
 module AoC.Y2016.Day14.Primary (solver) where
 
@@ -19,22 +19,22 @@ import Data.ByteString.Char8 qualified as BSC
 solver :: Solver
 solver text = do
     Input salt <- parseInput text
-    pure (Answers (show (keyIndex (encodeUtf8 salt))) (Just "0"))
+    pure (Answers (show (keyIndex 1 (encodeUtf8 salt))) (Just (show (keyIndex 2017 (encodeUtf8 salt)))))
 
-keyIndex :: ByteString -> Natural
-keyIndex salt =
+keyIndex :: Int -> ByteString -> Natural
+keyIndex rounds salt =
     [index | (index, True) <- zip [0 ..] matches]
         & take 64
         & viaNonEmpty last
         & fromMaybe 0
   where
-    summaries = [hashSummary (salt <> encodeUtf8 (show index :: Text)) | index <- [0 :: Natural ..]]
+    summaries = [hashSummary rounds (salt <> encodeUtf8 (show index :: Text)) | index <- [0 :: Natural ..]]
     matches = zipWith isKey summaries (drop 1 (tails summaries))
 
-hashSummary :: ByteString -> (Maybe Char, [Char])
-hashSummary bytes = (triplet, quintuples)
+hashSummary :: Int -> ByteString -> (Maybe Char, [Char])
+hashSummary rounds bytes = (triplet, quintuples)
   where
-    runs = bytes & MD5.hash & Base16.encode & BSC.group
+    runs = foldl' (\digest _ -> digest & MD5.hash & Base16.encode) bytes [1 .. rounds] & BSC.group
     triplet = find ((>= 3) . BS.length) runs >>= fmap fst . BSC.uncons
     quintuples = [digit | run <- runs, BS.length run >= 5, Just (digit, _) <- [BSC.uncons run]]
 
