@@ -20,9 +20,16 @@ solver text = do
     let rooms = layers favorite
         -- A wall or an exhausted component has no route: use the undefined placeholder.
         steps
-            | isOpen favorite (31, 39) = rooms & find (Set.member (31, 39) . snd) & maybe 0 fst
+            | isOpen favorite (31, 39) =
+                rooms
+                    & find (Set.member (31, 39) . snd)
+                    & maybe 0 fst
             | otherwise = 0
-        nearby = rooms & take 51 & map (Set.size . snd) & sum
+        nearby =
+            rooms
+                & take 51
+                & foldMap (Sum . Set.size . snd)
+                & getSum
     pure (Answers (show steps) (Just (show nearby)))
 
 layers :: Natural -> [(Int, Set Position)]
