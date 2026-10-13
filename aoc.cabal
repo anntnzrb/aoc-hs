@@ -51,6 +51,7 @@ library
   exposed-modules:
     AoC.Registry
     AoC.Solution
+    AoC.Assembunny
     AoC.Y2016.Day01.Primary
     AoC.Y2016.Day01.Input
     AoC.Y2016.Registry
@@ -146,7 +147,7 @@ test-suite test
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        Main.hs
-  other-modules: OpsTests
+  other-modules: OpsTests AoC.AssembunnyTests
 
 
 

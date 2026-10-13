@@ -1,6 +1,7 @@
 -- | Every registered solution against every fixture of its day.
 module Main (main) where
 
+import AoC.AssembunnyTests qualified
 import OpsTests qualified
 
 -- ops:test-imports
@@ -22,6 +23,7 @@ main = do
             "all"
             [ testGroup "fixtures" tests
             , OpsTests.tests
+            , AoC.AssembunnyTests.tests
             -- ops:test-entries
             ]
 
