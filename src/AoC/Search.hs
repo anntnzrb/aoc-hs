@@ -22,7 +22,12 @@ breadthFirstLayers successors origin = unfoldr advance (0, one origin, one origi
         | Set.null frontier = Nothing
         | otherwise = Just ((distance, frontier), (distance + 1, next, Set.union visited next))
       where
-        next = frontier & Set.toList & concatMap successors & Set.fromList & (`Set.difference` visited)
+        next =
+            frontier
+                & Set.toList
+                & concatMap successors
+                & Set.fromList
+                & (`Set.difference` visited)
 
 shortestDistance :: (Ord vertex) => (vertex -> [vertex]) -> (vertex -> Bool) -> vertex -> Maybe Int
 shortestDistance successors finished origin = breadthFirstLayers successors origin & find (any finished . snd) <&> fst
