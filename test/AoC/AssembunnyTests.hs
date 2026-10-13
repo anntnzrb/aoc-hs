@@ -14,7 +14,7 @@ import AoC.Assembunny (
     step,
  )
 import Data.Map.Strict qualified as Map
-import Hedgehog (Gen, Property, PropertyT, cover, forAll, property, withTests, (===))
+import Hedgehog (Gen, Property, PropertyT, assert, cover, forAll, property, withTests, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
@@ -91,7 +91,17 @@ differentialExecution = do
     cover 10 "wrong adjustment signs" (mutation == WrongSigns)
     cover 20 "sparse assignments" (Map.size machine.registers < 4)
     cover 20 "literal halts" (isJust literal)
-    for_ literal $ \result -> boundedRun acceleratedStep machine === Just result
+    cover 10 "literal reaches cap" (isNothing literal)
+    checkExecution machine literal
+
+checkExecution :: Machine -> Maybe (Machine, [Integer]) -> PropertyT IO ()
+checkExecution machine literal = do
+    -- Every case checks transitions, including nonterminating unsafe loops.
+    for_ (take 25 (iterate step machine)) $ \machineState ->
+        assert (acceleratedStep machineState `elem` take 1000 (drop 1 (iterate step machineState)))
+    case literal of
+        Just result -> boundedRun acceleratedStep machine === Just result
+        Nothing -> pass
 
 -- The cap applies independently to each interpreter; output is observed before
 -- every transition, just as callers of the shared machine consume it.
