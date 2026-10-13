@@ -55,6 +55,10 @@
 - smell: {type: many arg functions, limit: 4}
 - smell: {type: many imports, limit: 12}
 
+# A year registry imports and lists every day by construction.
+- ignore: {name: Many imports, within: "AoC.Y*.Registry"}
+- ignore: {name: Long function, within: "AoC.Y*.Registry"}
+
 - functions:
     # Partial, qualified by origin: relude's head, tail, init and last take a
     # NonEmpty and are total, as are Relude.Extra.Foldable1's methods
