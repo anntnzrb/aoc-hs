@@ -1,6 +1,6 @@
 module AoC.Y2016.Day18 (tests) where
 
-import AoC.Solution (Answers (part1), render)
+import AoC.Solution (part1, render)
 import AoC.Y2016.Day18.Primary (solver)
 import Data.List (zipWith3)
 import Data.Map.Strict qualified as Map
@@ -19,7 +19,7 @@ firstRows =
         width <- forAll (Gen.int (Range.constant 1 130))
         for_ (width : [1, 63, 64, 65, 127, 128, 129]) $ \size -> do
             row <- forAll (Gen.list (Range.singleton size) Gen.bool)
-            fmap (.part1) (solver (encode row)) === Right (show (literal 40 row))
+            fmap part1 (solver (encode row)) === Right (show (literal 40 row))
     )
         & property
         & withTests 12

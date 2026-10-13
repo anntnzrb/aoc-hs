@@ -5,7 +5,7 @@ trade: A set makes overlaps idempotent; exact font matching leaves non-text scre
 -}
 module AoC.Y2016.Day08.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day08.Input (Column (column), Height (height), Instruction (Rect, RotateColumn, RotateRow), Row (row), Width (width), parseInput)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
@@ -16,7 +16,7 @@ solver :: Solver
 solver text = do
     instructions <- parseInput text
     let screen = foldl' apply Set.empty instructions
-    pure (Answers (show (Set.size screen)) (Just (fromMaybe "0" (decode screen))))
+    answers (show (Set.size screen)) (Just (fromMaybe "0" (decode screen)))
 
 apply :: Screen -> Instruction -> Screen
 apply screen = \case

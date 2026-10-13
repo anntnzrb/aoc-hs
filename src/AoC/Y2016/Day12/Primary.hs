@@ -6,13 +6,13 @@ trade: Shared loop checks replace repeated adjustments with exact arithmetic; un
 module AoC.Y2016.Day12.Primary (solver) where
 
 import AoC.Assembunny (Instruction, Machine, Register (A, C), Value (RegisterValue), acceleratedStep, current, initialise, readValue)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day12.Input (Input (Input), parseInput)
 
 solver :: Solver
 solver text = do
     Input instructions <- parseInput text
-    pure (Answers (show (execute instructions [])) (Just (show (execute instructions [(C, 1)]))))
+    answers (show (execute instructions [])) (Just (show (execute instructions [(C, 1)])))
 
 execute :: [Instruction] -> [(Register, Integer)] -> Integer
 execute instructions initial =

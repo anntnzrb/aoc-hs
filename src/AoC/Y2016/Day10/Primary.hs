@@ -6,7 +6,7 @@ trade: Persistent maps keep the simulation pure and retain only one waiting chip
 -}
 module AoC.Y2016.Day10.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day10.Input (Bot, Chip (Chip), Destination (Output, ToBot), Input (Input), Instruction (Give, Route), parseInput)
 import Data.Map.Strict qualified as Map
 import Data.Sequence (Seq (Empty, (:<|)), (|>))
@@ -25,7 +25,7 @@ solver :: Solver
 solver text = do
     Input instructions <- parseInput text
     factory <- simulate (routes instructions) (initial instructions)
-    pure (Answers (maybe "0" show factory.comparing) (Just (outputProduct factory)))
+    answers (maybe "0" show factory.comparing) (Just (outputProduct factory))
 
 routes :: [Instruction] -> Map Bot (Destination, Destination)
 routes instructions = Map.fromList [(bot, (low, high)) | Route bot low high <- instructions]

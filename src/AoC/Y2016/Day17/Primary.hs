@@ -12,7 +12,7 @@ Exhaustive search assumes the path tree is finite; no route prints 0 for both.
 module AoC.Y2016.Day17.Primary (solver) where
 
 import AoC.MD5 (hexNibbles)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day17.Input (Input (Input), parseInput)
 import Crypto.Hash.MD5 qualified as MD5
 import Data.ByteString qualified as BS
@@ -45,7 +45,7 @@ solver text = do
                 & concatMap (filter atVault)
         shortest = arrivals & find (const True) & maybe "0" routeText
         longest = arrivals & foldl' (\best route -> max best route.depth) 0
-    pure (Answers shortest (Just (show longest)))
+    answers shortest (Just (show longest))
 
 atVault :: Route -> Bool
 atVault route = route.row == 3 && route.column == 3

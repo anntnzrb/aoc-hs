@@ -6,7 +6,7 @@ trade: Total sequence edits and a bounded inverse search avoid lookup tables; am
 -}
 module AoC.Y2016.Day21.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day21.Input (Direction (Leftward, Rightward), Letter, Operation (Move, Reverse, Rotate, RotateLetter, SwapLetter, SwapPosition), Span, bounds, letterValue, parseInput)
 import Data.Foldable qualified as Foldable
 import Data.Sequence qualified as Seq
@@ -16,7 +16,7 @@ solver text = do
     operations <- parseInput text
     scrambled <- foldlM (flip apply) (Seq.fromList "abcdefgh") operations
     original <- Foldable.foldrM undo (Seq.fromList "fbgdceah") operations
-    pure (Answers (toText (toList scrambled)) (Just (toText (toList original))))
+    answers (toText (toList scrambled)) (Just (toText (toList original)))
 
 apply :: Operation -> Seq Char -> Either Text (Seq Char)
 apply operation password = case operation of

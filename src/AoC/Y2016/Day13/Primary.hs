@@ -7,7 +7,7 @@ module AoC.Y2016.Day13.Primary (solver) where
 
 import AoC.Grid (orthogonal)
 import AoC.Search (breadthFirstLayers)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day13.Input (Input (Input), parseInput)
 import Data.Bits (popCount)
 import Data.Set qualified as Set
@@ -30,7 +30,7 @@ solver text = do
                 & take 51
                 & foldMap (Sum . Set.size . snd)
                 & getSum
-    pure (Answers (show steps) (Just (show nearby)))
+    answers (show steps) (Just (show nearby))
 
 layers :: Natural -> [(Int, Set Position)]
 layers favorite

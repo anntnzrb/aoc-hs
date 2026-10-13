@@ -5,14 +5,14 @@ trade: Integer shifts and population counts evolve arbitrary-width rows without 
 -}
 module AoC.Y2016.Day18.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day18.Input (Input (Input), Tile (Safe, Trap), parseInput)
 import Data.Bits (bit, popCount, shiftL, shiftR, (.&.), (.|.))
 
 solver :: Solver
 solver text = do
     Input row <- parseInput text
-    pure (Answers (show (safeTiles 40 (toList row))) (Just (show (safeTiles 400000 (toList row)))))
+    answers (show (safeTiles 40 (toList row))) (Just (show (safeTiles 400000 (toList row))))
 
 safeTiles :: Int -> [Tile] -> Int
 safeTiles rows row =

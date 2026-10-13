@@ -5,7 +5,7 @@ trade: Prefix parity cancels the reflected halves, replacing disk-sized byte buf
 -}
 module AoC.Y2016.Day16.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day16.Input (Input (Input), parseInput)
 import Data.ByteString qualified as Bytes
 
@@ -17,7 +17,7 @@ solver text = do
                 & toList
                 & map encode
                 & Bytes.pack
-    pure (Answers (decodeUtf8 (diskChecksum 272 seed)) (Just (decodeUtf8 (diskChecksum 35651584 seed))))
+    answers (decodeUtf8 (diskChecksum 272 seed)) (Just (decodeUtf8 (diskChecksum 35651584 seed)))
 
 encode :: Bool -> Word8
 encode False = 48

@@ -11,7 +11,7 @@ module AoC.Y2016.Day22.Primary (solver) where
 
 import AoC.Grid (adjacent, indexedOrthogonal, orthogonal)
 import AoC.Search (shortestDistance, shortestIntDistance)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day22.Input (Node (available, capacity, position, used), parseInput)
 import Data.IntMap.Strict qualified as IntMap
 import Data.List (partition)
@@ -25,7 +25,7 @@ type Loads = Map Position Int
 solver :: Solver
 solver text = do
     nodes <- parseInput text
-    pure (Answers (show (viablePairs nodes)) (Just (show (fromMaybe 0 (fewestMoves nodes)))))
+    answers (show (viablePairs nodes)) (Just (show (fromMaybe 0 (fewestMoves nodes))))
 
 viablePairs :: [Node] -> Int
 viablePairs nodes =

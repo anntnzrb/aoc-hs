@@ -12,7 +12,7 @@ keeps the first hit for each position and emits characters in position order.
 module AoC.Y2016.Day05.Primary (solver) where
 
 import AoC.MD5 (hexNibbles)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Answers, Solver, answers)
 import AoC.Y2016.Day05.Input (Input (Input), parseInput)
 import Crypto.Hash.MD5 qualified as MD5
 import Data.ByteString qualified as BS
@@ -23,12 +23,10 @@ solver :: Solver
 solver text = do
     Input door <- parseInput text
     let hits = [digits | index <- iterate increment "0", Just digits <- [nextDigits (encodeUtf8 door) index]]
-    pure
-        ( hits
-            & scanl' addHit ([], Map.empty)
-            & find complete
-            & renderPasswords
-        )
+    hits
+        & scanl' addHit ([], Map.empty)
+        & find complete
+        & renderPasswords
 
 nextDigits :: ByteString -> ByteString -> Maybe (Char, Char)
 nextDigits door index = case BS.uncons digest of
@@ -71,7 +69,7 @@ complete =
         >>> Map.size
         >>> (== 8)
 
-renderPasswords :: Maybe ([Char], Map Char Char) -> Answers
+renderPasswords :: Maybe ([Char], Map Char Char) -> Either Text Answers
 renderPasswords = \case
-    Just (sequential, positional) -> Answers (toText sequential) (Just (toText (Map.elems positional)))
-    Nothing -> Answers "0" (Just "0")
+    Just (sequential, positional) -> answers (toText sequential) (Just (toText (Map.elems positional)))
+    Nothing -> answers "0" (Just "0")

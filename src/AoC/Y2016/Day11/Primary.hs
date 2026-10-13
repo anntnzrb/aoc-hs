@@ -6,7 +6,7 @@ trade: Canonical pairs fit compact IntSet keys when their encoding cannot overfl
 module AoC.Y2016.Day11.Primary (solver) where
 
 import AoC.Search (shortestDistance, shortestIntDistance)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day11.Input (Component (Generator, Microchip), Floor (FloorFour, FloorOne, FloorThree, FloorTwo), Input (Input), Locations (generatorFloor, microchipFloor), parseInput)
 import Data.Bits (bit, testBit, (.|.))
 import Data.Map.Strict qualified as Map
@@ -19,7 +19,7 @@ solver text = do
     Input elements <- parseInput text
     let pairs = Map.elems elements & map (\locations -> (locations.generatorFloor, locations.microchipFloor))
     steps <- shortest pairs
-    pure (Answers (show steps) (Just (either (const "0") show (shortest ((FloorOne, FloorOne) : (FloorOne, FloorOne) : pairs)))))
+    answers (show steps) (Just (either (const "0") show (shortest ((FloorOne, FloorOne) : (FloorOne, FloorOne) : pairs))))
 
 shortest :: [(Floor, Floor)] -> Either Text Int
 shortest pairs

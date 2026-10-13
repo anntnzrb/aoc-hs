@@ -6,7 +6,7 @@ trade: Exact cycle detection still includes the live program and expected bit; s
 module AoC.Y2016.Day25.Primary (solver) where
 
 import AoC.Assembunny (Instruction (Output), Machine (registers), Register (A, B, C, D), acceleratedStep, current, initialise, readValue)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day25.Input (Input (Input), parseInput)
 import Data.Map.Strict qualified as Map
 
@@ -24,7 +24,7 @@ solver text = do
     Input instructions <- parseInput text
     let machine = initialise instructions []
     seed <- [1 ..] & find (clock machine) & maybeToRight "No positive clock seed"
-    pure (Answers (show seed) Nothing)
+    answers (show seed) Nothing
 
 clock :: Machine -> Integer -> Bool
 clock machine seed = verify mempty 0 (Signal machine{registers = Map.fromList [(A, seed), (B, 0), (C, 0), (D, 0)]} Zero)

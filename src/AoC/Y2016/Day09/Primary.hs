@@ -7,7 +7,7 @@ trade: Arbitrary-precision lengths avoid storing decompressed output;
 -}
 module AoC.Y2016.Day09.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day09.Input (Chunk (Literal, Repeat), Input (Input), parseInput)
 
 solver :: Solver
@@ -15,7 +15,7 @@ solver text = do
     input@(Input chunks) <- parseInput text
     let part1 = sum (map chunkLength chunks)
     let part2 = recursiveLength input & fromRight 0
-    pure (Answers (show part1) (Just (show part2)))
+    answers (show part1) (Just (show part2))
 
 chunkLength :: Chunk -> Natural
 chunkLength = \case

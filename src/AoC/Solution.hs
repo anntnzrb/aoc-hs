@@ -1,18 +1,31 @@
--- | The interface every solution implements: puzzle input to answers.
-module AoC.Solution (Answers (..), Solver, render) where
-
-{- | A day's answers in part order; each answer renders as one output line.
-'part2' is 'Nothing' only for a puzzle without computational part 2; an
-unfinished part answers @0@.
+{- | The interface every solution implements: puzzle input to answers.
+Answers are non-empty text without CR or LF, constructed only by 'answers'.
+Rendering preserves their text and emits one terminated line per part, in order.
+Part 2 is absent only without a computational part 2; unfinished parts answer @0@.
 -}
-data Answers = Answers
-    { part1 :: Text
-    , part2 :: Maybe Text
-    }
+module AoC.Solution (Answers, Solver, answers, part1, render) where
 
--- | Puzzle input to its answers, or why the input is malformed.
+data Answers = Answers Text (Maybe Text)
+
+-- | Puzzle input to its answers, or why the input or answers are invalid.
 type Solver = Text -> Either Text Answers
 
--- | One answer per line, part 1 first.
+-- | Reject empty answers and CR or LF in either part; preserve all other text.
+answers :: Text -> Maybe Text -> Either Text Answers
+answers firstAnswer secondAnswer = do
+    traverse_ check (firstAnswer : maybeToList secondAnswer)
+    pure (Answers firstAnswer secondAnswer)
+  where
+    check :: Text -> Either Text ()
+    check value
+        | value == "" = Left "empty answer"
+        | any (`elem` ['\r', '\n']) (toString value) = Left "answer contains a line break"
+        | otherwise = Right ()
+
+-- | Read the first answer without exposing a record field that could bypass validation.
+part1 :: Answers -> Text
+part1 (Answers firstAnswer _) = firstAnswer
+
+-- | One terminated line per answer, part 1 first.
 render :: Answers -> Text
-render answers = unlines (answers.part1 : maybeToList answers.part2)
+render (Answers firstAnswer secondAnswer) = unlines (firstAnswer : maybeToList secondAnswer)

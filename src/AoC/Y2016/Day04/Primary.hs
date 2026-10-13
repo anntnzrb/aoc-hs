@@ -5,7 +5,7 @@ trade: A strict map has at most 26 entries per room; absent storage keeps a zero
 -}
 module AoC.Y2016.Day04.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day04.Input (Room (checksum, sector, words), parseInput)
 import Data.Map.Strict qualified as Map
 
@@ -13,11 +13,9 @@ solver :: Solver
 solver text = do
     rooms <- parseInput text
     let genuine = filter real rooms
-    pure
-        ( Answers
-            (show (sum [room.sector | room <- genuine]))
-            (Just (show (maybe 0 (\room -> room.sector) (find storage genuine))))
-        )
+    answers
+        (show (sum [room.sector | room <- genuine]))
+        (Just (show (maybe 0 (\room -> room.sector) (find storage genuine))))
 
 storage :: Room -> Bool
 storage room =

@@ -5,7 +5,7 @@ trade: One frequency map serves both parts; ties choose the larger letter for pa
 -}
 module AoC.Y2016.Day06.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day06.Input (Input (Input), parseInput)
 import Data.List.NonEmpty qualified as NE
 import Data.Map.Strict qualified as Map
@@ -19,7 +19,7 @@ solver text = do
                 & fmap decode
                 & toList
                 & unzip
-    pure (Answers (toText most) (Just (toText least)))
+    answers (toText most) (Just (toText least))
 
 decode :: NonEmpty Char -> (Char, Char)
 decode letters =

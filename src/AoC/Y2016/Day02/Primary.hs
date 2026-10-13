@@ -5,7 +5,7 @@ trade: A fixed coordinate map makes rejected moves explicit and keeps the simula
 -}
 module AoC.Y2016.Day02.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day02.Input (Direction (Downward, Leftward, Rightward, Upward), Input (Input), parseInput)
 import Data.Map.Strict qualified as Map
 
@@ -16,7 +16,7 @@ type Button = (Position, Char)
 solver :: Solver
 solver text = do
     Input rows <- parseInput text
-    pure (Answers (code square ((1, 1), '5') rows) (Just (code diamond ((2, 0), '5') rows)))
+    answers (code square ((1, 1), '5') rows) (Just (code diamond ((2, 0), '5') rows))
 
 square :: Map Position Char
 square = layout ["123", "456", "789"]

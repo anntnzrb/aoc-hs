@@ -5,7 +5,7 @@ trade: Range arithmetic avoids enumerating the entire address space.
 -}
 module AoC.Y2016.Day20.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day20.Input (addressCount, bounds, parseInput)
 
 solver :: Solver
@@ -14,7 +14,7 @@ solver text = do
     let sorted = ranges <&> bounds & sort
         lowest = sorted & foldl' advance 0
     -- A fully blocked address space has no lowest allowed address.
-    pure (Answers (show (if lowest < addressCount then lowest else 0)) (Just (show (allowedCount sorted))))
+    answers (show (if lowest < addressCount then lowest else 0)) (Just (show (allowedCount sorted)))
 
 advance :: Integer -> (Integer, Integer) -> Integer
 advance candidate (lower, upper)

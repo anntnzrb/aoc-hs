@@ -12,7 +12,7 @@ still scan a bounded lookahead window.
 module AoC.Y2016.Day14.Primary (solver) where
 
 import AoC.MD5 (md5HexRepeated)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day14.Input (Input (Input), parseInput)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as BSC
@@ -26,7 +26,7 @@ data HashSummary = HashSummary
 solver :: Solver
 solver text = do
     Input salt <- parseInput text
-    pure (Answers (show (keyIndex 1 (encodeUtf8 salt))) (Just (show (keyIndex 2017 (encodeUtf8 salt)))))
+    answers (show (keyIndex 1 (encodeUtf8 salt))) (Just (show (keyIndex 2017 (encodeUtf8 salt))))
 
 keyIndex :: Int -> ByteString -> Natural
 keyIndex rounds salt =

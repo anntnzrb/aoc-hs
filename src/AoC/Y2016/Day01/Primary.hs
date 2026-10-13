@@ -5,7 +5,7 @@ trade: Endpoint jumps keep part 1 cheap; part 2 stores visits and stops at the f
 -}
 module AoC.Y2016.Day01.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day01.Input (Input (Input), Instruction (Instruction), Steps (Steps), Turn (TurnLeft, TurnRight), parseInput)
 import Data.Set qualified as Set
 
@@ -26,7 +26,7 @@ solver text = do
                 & fromMaybe 0
                 & show
     -- A route without a revisit still has a valid part-1 answer.
-    pure (Answers answer (Just revisit))
+    answers answer (Just revisit)
 
 firstRevisit :: NonEmpty Instruction -> Maybe Integer
 firstRevisit route =

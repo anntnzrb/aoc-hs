@@ -6,7 +6,7 @@ trade: Period stepping skips rejected times; incompatible part 2 prints the unde
 -}
 module AoC.Y2016.Day15.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day15.Input (Disc (initial, number, positions), disc, parseInput)
 
 solver :: Solver
@@ -15,7 +15,7 @@ solver text = do
     schedule <- foldlM align (0, 1) discs
     extra <- disc (1 + foldl' (\bottom item -> max bottom item.number) 0 discs) 11 0
     let part2 = align schedule extra & either (const "0") (show . fst)
-    pure (Answers (show (fst schedule)) (Just part2))
+    answers (show (fst schedule)) (Just part2)
 
 align :: (Integer, Integer) -> Disc -> Either Text (Integer, Integer)
 align (time, period) item =

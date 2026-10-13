@@ -6,13 +6,13 @@ trade: Shared runtime pattern checks avoid repeated adjustments while preserving
 module AoC.Y2016.Day23.Primary (solver) where
 
 import AoC.Assembunny (Instruction, Register (A), Value (RegisterValue), acceleratedStep, current, initialise, readValue)
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day23.Input (Input (Input), parseInput)
 
 solver :: Solver
 solver text = do
     Input instructions <- parseInput text
-    pure (Answers (show (execute instructions 7)) (Just (show (execute instructions 12))))
+    answers (show (execute instructions 7)) (Just (show (execute instructions 12)))
 
 execute :: [Instruction] -> Integer -> Integer
 execute instructions initial =

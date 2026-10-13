@@ -5,13 +5,13 @@ trade: Power boundaries replace one recurrence step per elf with three exact lin
 -}
 module AoC.Y2016.Day19.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day19.Input (Input (elfCount), parseInput)
 
 solver :: Solver
 solver text = do
     input <- parseInput text
-    pure (Answers (show (leftWinner input.elfCount)) (Just (show (acrossWinner input.elfCount))))
+    answers (show (leftWinner input.elfCount)) (Just (show (acrossWinner input.elfCount)))
 
 leftWinner :: Integer -> Integer
 leftWinner count = 2 * (count - power) + 1

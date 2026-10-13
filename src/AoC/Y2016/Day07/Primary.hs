@@ -5,7 +5,7 @@ trade: Keep bracket boundaries explicit and use bounded sets to match overlappin
 -}
 module AoC.Y2016.Day07.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day07.Input (Address (hypernets, supernets), parseInput)
 import Data.List (zip4)
 import Data.Set qualified as Set
@@ -14,7 +14,7 @@ solver :: Solver
 solver text = do
     addresses <- parseInput text
     let (tls, ssl) = foldMap (countSupports supportsTLS &&& countSupports supportsSSL) addresses
-    pure (Answers (show (getSum tls)) (Just (show (getSum ssl))))
+    answers (show (getSum tls)) (Just (show (getSum ssl)))
 
 countSupports :: (Address -> Bool) -> Address -> Sum Int
 countSupports predicate address

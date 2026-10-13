@@ -5,14 +5,14 @@ trade: Direct inequalities avoid sorting and keep the rule explicit.
 -}
 module AoC.Y2016.Day03.Primary (solver) where
 
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day03.Input (Triangle (Triangle), parseInput)
 
 solver :: Solver
 solver text = do
     triangles <- parseInput text
     -- Incomplete three-row groups leave part two undefined: print the placeholder.
-    pure (Answers (show (countTriangles triangles)) (Just (show (fromMaybe 0 (verticalCount triangles)))))
+    answers (show (countTriangles triangles)) (Just (show (fromMaybe 0 (verticalCount triangles))))
 
 verticalCount :: [Triangle] -> Maybe Int
 verticalCount =

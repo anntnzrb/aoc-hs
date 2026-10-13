@@ -7,7 +7,7 @@ module AoC.Y2016.Day24.Primary (solver) where
 
 import AoC.Grid (indexedOrthogonal)
 import AoC.Search qualified as Search
-import AoC.Solution (Answers (Answers), Solver)
+import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day24.Input (Input (locations, passages), parseInput)
 import Data.Bits (setBit, testBit)
 import Data.IntMap.Strict qualified as IntMap
@@ -24,7 +24,7 @@ solver text = do
         routes = foldl' (\states _ -> extend distances states) (one ((setBit 0 0, 0), 0)) [1 .. Map.size input.locations - 1]
     answer <- viaNonEmpty (\(value :| values) -> foldl' min value values) (Map.elems routes) & maybeToRight "Unreachable numbered location"
     returning <- viaNonEmpty (\(value :| values) -> foldl' min value values) [cost + distance | ((_, endpoint), cost) <- Map.toList routes, Just distance <- [Map.lookup endpoint distances >>= Map.lookup 0]] & maybeToRight "Cannot return to starting location"
-    pure (Answers (show answer) (Just (show returning)))
+    answers (show answer) (Just (show returning))
 
 locationDistances :: Input -> Distances
 locationDistances input = Map.map fromLocation numbered
