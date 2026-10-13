@@ -10,7 +10,7 @@ import OpsTests qualified
 import AoC.Registry (Key (day, year), solvers)
 import AoC.Solution (Solver, render)
 import Data.Map.Strict qualified as Map
-import Data.Text qualified as Text
+import Data.Text qualified as T
 import System.Directory (doesDirectoryExist, listDirectory)
 import System.FilePath (replaceExtension, takeExtension, (</>))
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -36,7 +36,7 @@ fixtureDir key = "fixtures" </> show key.year </> dayDir
     dayDir =
         key.day
             & show
-            & Text.justifyRight 2 '0'
+            & T.justifyRight 2 '0'
             & toString
 
 solutionTests :: (Key, Solver) -> IO TestTree
@@ -59,7 +59,7 @@ count; an empty or unterminated expected file fails.
 fixtureTest :: Solver -> FilePath -> TestTree
 fixtureTest solver input = testCase input $ do
     expected <- readFileBS (replaceExtension input "out") <&> decodeUtf8
-    when (Text.null expected || not ("\n" `Text.isSuffixOf` expected)) $
+    when (T.null expected || not ("\n" `T.isSuffixOf` expected)) $
         assertFailure "expected output is empty or unterminated"
     actual <- readFileBS input <&> (solver . decodeUtf8)
     case actual of
