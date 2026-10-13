@@ -24,7 +24,7 @@ diskChecksum size seed = Bytes.pack [encode (if block == 1 then parity else not 
   where
     -- Every positive number of pair reductions yields the complement of block parity.
     block = iterate (`div` 2) size & takeWhile even & foldl' (\width _ -> 2 * width) 1
-    levels = iterate (\n -> 2 * n + 1) (Bytes.length seed) & takeWhile (< size) & foldl' (\smaller previous -> previous : smaller) []
+    levels = iterate (\n -> 2 * n + 1) (Bytes.length seed) & takeWhile (< size) & flipfoldl' (:) []
     prefix = prefixParity seed levels
 
 prefixParity :: ByteString -> [Int] -> Int -> Bool
