@@ -1,7 +1,7 @@
 {- |
-approach: Count name letters, rank by descending frequency then alphabet, sum real sectors.
-cost: O(n) time and O(n) parsed input memory; two input passes, parsing and classification.
-trade: A strict map expresses counts directly; at most 26 entries per room. Part 2 unfinished.
+approach: Rank letter counts to identify real rooms, then rotate letters to find storage.
+cost: O(n) time and O(n) memory; parsing, classification/sum, then a real-room search.
+trade: A strict map has at most 26 entries per room; absent storage keeps a zero placeholder.
 -}
 module AoC.Y2016.Day04.Primary (solver) where
 
@@ -12,7 +12,23 @@ import Data.Map.Strict qualified as Map
 solver :: Solver
 solver text = do
     rooms <- parseInput text
-    pure (Answers (show (sum [room.sector | room <- rooms, real room])) (Just "0"))
+    let genuine = filter real rooms
+    pure
+        ( Answers
+            (show (sum [room.sector | room <- genuine]))
+            (Just (show (maybe 0 (\room -> room.sector) (find storage genuine))))
+        )
+
+storage :: Room -> Bool
+storage room =
+    room.words
+        & toList
+        & map (toString >>> map (rotate room.sector) >>> toText)
+        & unwords
+        & (== "northpole object storage")
+
+rotate :: Natural -> Char -> Char
+rotate sector letter = chr (ord 'a' + (ord letter - ord 'a' + fromIntegral (sector `mod` 26)) `mod` 26)
 
 real :: Room -> Bool
 real room =
