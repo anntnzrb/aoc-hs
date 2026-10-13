@@ -1,7 +1,7 @@
 {- |
 approach: Detect ABBA for TLS and intersect outside ABA pairs with reversed inside pairs for SSL.
-cost: O(n log k) time, O(n) parsed storage and O(k) sets; k <= 650, one parse and one address pass.
-trade: Keep bracket boundaries explicit and use bounded sets to match overlapping SSL patterns.
+cost: O(n log(k+1)) time, O(n) parsed storage and O(k) sets; k counts distinct ABA character pairs per address, one parse and one address pass.
+trade: Keep bracket boundaries explicit and use sets to match overlapping SSL patterns.
 -}
 module AoC.Y2016.Day07.Primary (solver) where
 
