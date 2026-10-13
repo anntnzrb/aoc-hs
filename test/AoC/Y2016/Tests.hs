@@ -7,6 +7,7 @@ import AoC.Y2016.Day11 qualified as Day11
 import AoC.Y2016.Day16 qualified as Day16
 import AoC.Y2016.Day18 qualified as Day18
 import AoC.Y2016.Day19 qualified as Day19
+import AoC.Y2016.Day21 qualified as Day21
 import AoC.Y2016.Day22 qualified as Day22
 import AoC.Y2016.Day24 qualified as Day24
 import Test.Tasty (TestTree, testGroup)
@@ -22,6 +23,7 @@ tests =
         , Day16.tests
         , Day18.tests
         , Day19.tests
+        , Day21.tests
         , Day22.tests
         , Day24.tests
         ]
