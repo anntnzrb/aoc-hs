@@ -1,11 +1,11 @@
 {- |
-approach: Interpret each instruction with four integer registers and a relative program counter.
-cost: O(n + t log n) time, O(n) memory; one parse pass and two indexing passes for n instructions and t total executed steps across both runs.
-trade: A direct interpreter preserves the instruction semantics without assuming a particular program; the two initial register states share the same parsed program.
+approach: Interpret each instruction, collapsing verified terminating arithmetic loops in the live program.
+cost: O(n + s log n) time, O(n) memory; one parse pass and two indexing passes for n instructions and s interpreted or collapsed steps across both runs, with integer arithmetic costs additional.
+trade: Shared loop checks replace repeated adjustments with exact arithmetic; unmatched instructions retain direct semantics and both initial register states share the parsed program.
 -}
 module AoC.Y2016.Day12.Primary (solver) where
 
-import AoC.Assembunny (Instruction, Machine, Register (A, C), Value (RegisterValue), current, initialise, readValue, step)
+import AoC.Assembunny (Instruction, Machine, Register (A, C), Value (RegisterValue), acceleratedStep, current, initialise, readValue)
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day12.Input (Input (Input), parseInput)
 
@@ -17,7 +17,7 @@ solver text = do
 execute :: [Instruction] -> [(Register, Integer)] -> Integer
 execute instructions initial =
     initialise instructions initial
-        & iterate step
+        & iterate acceleratedStep
         & find halted
         & maybe 0 (readValue (RegisterValue A))
   where
