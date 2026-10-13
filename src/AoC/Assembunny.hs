@@ -167,10 +167,10 @@ addLoop machine = do
     (firstRegister, firstDelta) <- adjustment firstStep
     (secondRegister, secondDelta) <- adjustment secondStep
     guard (firstRegister /= secondRegister)
-    (target, targetDelta, counterRegister, counterDelta) <-
+    ((target, targetDelta), (counterRegister, counterDelta)) <-
         if condition == secondRegister
-            then Just (firstRegister, firstDelta, secondRegister, secondDelta)
-            else if condition == firstRegister then Just (secondRegister, secondDelta, firstRegister, firstDelta) else Nothing
+            then Just ((firstRegister, firstDelta), (secondRegister, secondDelta))
+            else if condition == firstRegister then Just ((secondRegister, secondDelta), (firstRegister, firstDelta)) else Nothing
     let count = readValue (RegisterValue counterRegister) machine
     guard (count * counterDelta < 0)
     pure (complete machine 3 [(target, readValue (RegisterValue target) machine + targetDelta * abs count), (counterRegister, 0)])

@@ -33,9 +33,9 @@ division = testCase "countdown division matches direct execution including the f
 
 addition :: TestTree
 addition = testCase "signed counters and either adjustment order match direct execution" $ do
-    for_ [(count, delta, targetDelta, swapped) | count <- [-4 .. 4], delta <- [-1, 1], count * delta < 0, targetDelta <- [-1, 1], swapped <- [False, True]] $ \(count, delta, targetDelta, swapped) -> do
-        let pair = [adjust targetDelta A, adjust delta B]
-            instructions = (if swapped then reverse pair else pair) <> [Jump (RegisterValue B) (Literal (-2)), Output (RegisterValue A)]
+    for_ [(count, delta, (targetDelta, swapped)) | count <- [-4 .. 4], delta <- [-1, 1], count * delta < 0, targetDelta <- [-1, 1], swapped <- [False, True]] $ \(count, delta, (targetDelta, swapped)) -> do
+        let pair = if swapped then [adjust delta B, adjust targetDelta A] else [adjust targetDelta A, adjust delta B]
+            instructions = pair <> [Jump (RegisterValue B) (Literal (-2)), Output (RegisterValue A)]
             machine = initialise instructions [(A, 7), (B, count)]
         acceleratedStep machine @?= direct (3 * abs count) machine
 
