@@ -1,6 +1,6 @@
 {- |
 approach: Encode traps as bits; unequal neighbours are the XOR of left and right shifts.
-cost: O(rows * ceil(width / word size)) bit operations, O(width) live bits; one parsing pass, two seed passes per answer.
+cost: O(width² / word size + rows * ceil(width / word size)) word operations, including repeated-shift seed encoding; O(width) live bits; one parsing pass, two seed passes per answer.
 trade: Integer shifts and population counts evolve arbitrary-width rows without per-tile allocation; a mask keeps both walls safe.
 -}
 module AoC.Y2016.Day18.Primary (solver) where
