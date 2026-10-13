@@ -1,19 +1,22 @@
 {- |
-approach: Fold the parsed operations over the eight-letter password.
-cost: O(m * n) time, O(m + n) memory, two input passes; n = 8 letters.
-trade: A sequence keeps position edits total and the operation rules explicit.
+approach: Fold operations forward, then undo them in reverse order.
+The position-based rotation is inverted by checking all eight rotations.
+cost: O(m * n^2) time, O(m + n) memory, three input passes; n = 8 letters.
+trade: Total sequence edits and a bounded inverse search avoid lookup tables.
 -}
 module AoC.Y2016.Day21.Primary (solver) where
 
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day21.Input (Operation (Move, Reverse, Rotate, RotateLetter, SwapLetter, SwapPosition), parseInput)
+import Data.Foldable qualified as Foldable
 import Data.Sequence qualified as Seq
 
 solver :: Solver
 solver text = do
     operations <- parseInput text
     scrambled <- foldlM (flip apply) (Seq.fromList "abcdefgh") operations
-    pure (Answers (toText (toList scrambled)) (Just "0"))
+    original <- Foldable.foldrM undo (Seq.fromList "fbgdceah") operations
+    pure (Answers (toText (toList scrambled)) (Just (toText (toList original))))
 
 apply :: Operation -> Seq Char -> Either Text (Seq Char)
 apply operation password = case operation of
@@ -54,3 +57,15 @@ reverseSpan x y password = before <> Seq.reverse middle <> after
   where
     (before, rest) = Seq.splitAt x password
     (middle, after) = Seq.splitAt (y - x + 1) rest
+
+undo :: Operation -> Seq Char -> Either Text (Seq Char)
+undo operation password = case operation of
+    Rotate steps -> pure (rotate (negate steps) password)
+    Move x y -> apply (Move y x) password
+    RotateLetter value ->
+        [candidate | steps <- [0 .. 7], let candidate = rotate steps password, basedRotation value candidate == Right password]
+            & viaNonEmpty head
+            & maybeToRight "position rotation has no inverse"
+    SwapPosition{} -> apply operation password
+    SwapLetter{} -> apply operation password
+    Reverse{} -> apply operation password
