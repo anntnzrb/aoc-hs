@@ -663,8 +663,9 @@ Also note `cabal build aoc` is ambiguous (library and executable): use
   tuples of four or more, even on bounded lists; use strict folds, explicit
   constructors and nested pairs. weeder rejects unused derived instances.
 - relude does not export `until` or `foldM`; use `iterate`/`find` and
-  `foldlM`. The library has no direct `text` dependency; use relude's
-  conversions.
+  `foldlM`. The library depends directly on `text` for Text-native operations
+  such as `Data.Text.any` and `Data.Text.length` that relude does not
+  re-export; import `Data.Text` qualified.
 - Clever optimisations (closed forms, bit-parallel rows, loop acceleration,
   packed states) need committed differential properties against a literal
   statement-derived reference in `test/AoC/Y<YEAR>/DayDD.hs`; scratch

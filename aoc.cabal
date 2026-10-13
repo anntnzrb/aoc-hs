@@ -48,6 +48,7 @@ library
     , containers
     , cryptohash-md5
     , megaparsec
+    , text
   exposed-modules:
     AoC.Registry
     AoC.Solution

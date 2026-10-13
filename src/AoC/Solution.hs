@@ -5,6 +5,8 @@ Part 2 is absent only without a computational part 2; unfinished parts answer @0
 -}
 module AoC.Solution (Answers, Solver, answers, part1, render) where
 
+import Data.Text qualified as Text
+
 {- | Validated nonempty single-line answers in part order; an absent second part means
 no computational part 2.
 -}
@@ -22,7 +24,7 @@ answers firstAnswer secondAnswer = do
     check :: Text -> Either Text ()
     check value
         | value == "" = Left "empty answer"
-        | any (`elem` ['\r', '\n']) (toString value) = Left "answer contains a line break"
+        | Text.any (`elem` ['\r', '\n']) value = Left "answer contains a line break"
         | otherwise = Right ()
 
 -- | Read the first answer without exposing a record field that could bypass validation.
