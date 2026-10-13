@@ -17,6 +17,12 @@ import AoC.Y2016.Day14.Input (Input (Input), parseInput)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as BSC
 
+-- Lookahead and candidate checks force their own summary fields independently.
+data HashSummary = HashSummary
+    { triplet :: ~(Maybe Char)
+    , quintuples :: ~[Char]
+    }
+
 solver :: Solver
 solver text = do
     Input salt <- parseInput text
@@ -32,13 +38,13 @@ keyIndex rounds salt =
     summaries = [hashSummary rounds (salt <> encodeUtf8 (show index :: Text)) | index <- [0 :: Natural ..]]
     matches = zipWith isKey summaries (drop 1 (tails summaries))
 
-hashSummary :: Int -> ByteString -> (Maybe Char, [Char])
-hashSummary rounds bytes = (triplet, quintuples)
+hashSummary :: Int -> ByteString -> HashSummary
+hashSummary rounds bytes = HashSummary triplet quintuples
   where
     runs = md5HexRepeated rounds bytes & BSC.group
     triplet = find ((>= 3) . BS.length) runs >>= fmap fst . BSC.uncons
     quintuples = [digit | run <- runs, BS.length run >= 5, Just (digit, _) <- [BSC.uncons run]]
 
-isKey :: (Maybe Char, [Char]) -> [(Maybe Char, [Char])] -> Bool
-isKey (triplet, _) future =
-    triplet & maybe False (\digit -> any (elem digit . snd) (take 1000 future))
+isKey :: HashSummary -> [HashSummary] -> Bool
+isKey summary future =
+    summary.triplet & maybe False (\digit -> any (elem digit . (.quintuples)) (take 1000 future))

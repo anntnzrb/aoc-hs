@@ -16,7 +16,35 @@ type Nodes = [(Position, (Int, Int))]
 type Storage = (Map Position Int, Position)
 
 tests :: TestTree
-tests = testGroup "2016/22 full storage states" [testProperty "tiny grids with arbitrary capacities" grids, testCase "swap preconditions and walls" (traverse_ check examples)]
+tests =
+    testGroup
+        "2016/22 full storage states"
+        [ testProperty "tiny grids with arbitrary capacities" grids
+        , testCase "swap preconditions and walls" (traverse_ check examples)
+        , testCase "payloads near Int bounds" (traverse_ check largeExamples)
+        , testCase "reject overflowing node fields" (traverse_ (\excess -> traverse_ (rejectOverflow excess) [0 .. 5]) [limit, 2 * limit])
+        ]
+  where
+    limit = toInteger (maxBound :: Int) + 1
+
+largeExamples :: [Nodes]
+largeExamples =
+    [ zip [(0, 0), (1, 0), (0, 1), (1, 1)] [(maxBound, payload), (maxBound, payload), (maxBound, 0), (maxBound, payload)]
+    , [((0, 0), (maxBound, maxBound - 1)), ((1, 0), (maxBound, 1))]
+    , [((0, 0), (maxBound, maxBound)), ((1, 0), (maxBound, 1))]
+    ]
+  where
+    payload :: Int
+    payload = maxBound `div` 2 + 1
+
+rejectOverflow :: Integer -> Int -> IO ()
+rejectOverflow excess field = isLeft (solver input) @?= True
+  where
+    values = [show (value + if index == field then excess else 0) | (index, value) <- zip [0 ..] [0, 0, 1, 0, 1, 0]]
+    input =
+        zipWith (<>) values ["-y", " ", "T ", "T ", "T ", "%\n"]
+            & mconcat
+            & ("/dev/grid/node-x" <>)
 
 grids :: Property
 grids =
@@ -66,7 +94,7 @@ search capacities initial = layers Set.empty 0 [initial]
         fresh = Set.toList (Set.difference (Set.fromList frontier) seen)
 
 moves :: Map Position Int -> Storage -> [Storage]
-moves capacities (loads, goal) = [(Map.insert source 0 (Map.insert target (amount + occupied) loads), if source == goal then target else goal) | (source, amount) <- Map.toList loads, amount > 0, (target, occupied) <- Map.toList loads, adjacent source target, amount + occupied <= Map.findWithDefault 0 target capacities]
+moves capacities (loads, goal) = [(Map.insert source 0 (Map.insert target (amount + occupied) loads), if source == goal then target else goal) | (source, amount) <- Map.toList loads, amount > 0, (target, occupied) <- Map.toList loads, adjacent source target, toInteger amount + toInteger occupied <= toInteger (Map.findWithDefault 0 target capacities)]
   where
     adjacent :: Position -> Position -> Bool
     adjacent (x, y) (a, b) = abs (x - a) + abs (y - b) == 1

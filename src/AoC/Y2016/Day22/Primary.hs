@@ -88,7 +88,7 @@ swapModel nodes = do
 
 unmergeable :: Int -> [Node] -> Bool
 unmergeable capacity nodes = case sort [node.used | node <- nodes, node.used > 0] of
-    firstLoad : secondLoad : _ -> firstLoad + secondLoad > capacity
+    firstLoad : secondLoad : _ -> toInteger firstLoad + toInteger secondLoad > toInteger capacity
     [] -> True
     [_] -> True
 
@@ -104,7 +104,9 @@ loadMoves capacities (loads, goal) =
     , target <- orthogonal source
     , Just occupied <- [Map.lookup target loads]
     , Just capacity <- [Map.lookup target capacities]
-    , amount <= capacity - occupied
+    , -- Loads remain nonnegative and bounded by their node's capacity, so
+    -- this subtraction and the accepted amount + occupied cannot overflow.
+    amount <= capacity - occupied
     ]
 
 bounds :: (Ord a) => [a] -> Maybe (a, a)
