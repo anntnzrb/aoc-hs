@@ -360,7 +360,9 @@ docs/journal/2015.md          learning log
   are off. A tool enters the flake with its first use.
 - The gate runs, all as errors: `cabal build all`, `cabal test all`, format
   drift, hlint with relude's hints, weeder (dead code) and stan (anti-patterns
-  from HIE files), with jq rejecting any stan observation.
+  from HIE files), with jq rejecting any stan observation. Library Haddock
+  coverage must be 100% in every module, with no documentation warnings,
+  including unresolved external links.
 - GHC code is memory-safe and the code rules require totality, so there is
   no sanitizer stage. The runtime check is `cabal test` on the same `-Werror`
   build; cabal's default `-O1` is the optimized build.
@@ -372,7 +374,10 @@ docs/journal/2015.md          learning log
   `RELUDE_HLINT` supplies its path to hlint.
 - The doc check (`aoc-ops doc`) runs in `just check` and checks header tags,
   no `String` in signatures under `src/AoC/`, and no `HLINT`/`ANN`
-  annotations.
+  annotations. `aoc-ops haddock` runs `cabal haddock -v0 lib:aoc` and
+  rejects missing, malformed, duplicate or incomplete coverage and warnings.
+  Only Cabal's missing package-index notice is excluded from documentation
+  diagnostics; external link warnings fail because they indicate broken links.
 - The cabal `common` stanza owns the language settings: `default-language:
   GHC2024`; relude as the Prelude through `mixins: base hiding (Prelude),
   relude (Relude as Prelude)`; extensions `OverloadedRecordDot`,
@@ -537,7 +542,7 @@ Write idiomatic, elegant Haskell first; measure cost, do not chase it.
 ```sh
 just fmt              # nixfmt, just --fmt, fourmolu
 just lint             # format drift, hlint with relude's hints
-just check            # lint, cabal build and test, weeder, stan with jq gate
+just check            # lint, build/test, doc policy, 100% Haddock, weeder, stan
 ```
 
 Run them through `nix develop -c just ...`.
@@ -595,10 +600,10 @@ Also note `cabal build aoc` is ambiguous (library and executable): use
 | Test | `nix develop -c cabal test all`; offline operation tests, fixture comparisons, generated exploration properties. |
 | Run personal input | `nix develop -c cabal run -v0 aoc -- YEAR DAY < inputs/YEAR/dayDD.txt`; append lowercase EXPLORATION for a variant. |
 | Build | `nix develop -c cabal build all`; cabal rebuilds registered components with default `-O1`. |
-| Doc check | `nix develop -c cabal run -v0 aoc-ops -- doc`; required solution header tags, no String type signatures under src/AoC, no HLINT/ANN annotations in app/src/test; included in `just check`. |
+| Doc check | `nix develop -c cabal run -v0 aoc-ops -- doc`; required solution header tags, no String type signatures under src/AoC, no HLINT/ANN annotations in app/src/test; plus `nix develop -c cabal run -v0 aoc-ops -- haddock` for 100% library coverage and no Haddock warnings (including external links); both included in `just check`. |
 | Bench | `nix develop -c cabal run -v0 aoc-ops -- bench YEAR DAY`; builds and measures the optimized binary directly after all registered variants match primary output on cached real input. Five interleaved full/empty instructions:u pairs; timing rounds interleave variants, 10 runs (3 if the first timed run exceeds 1 s). Linux pins to a permitted P-core, falling back to a fixed permitted CPU; macOS has no affinity or work counter. Reports medians/ranges and limitations; never writes records. |
 | Record | `nix develop -c cabal run -v0 aoc-ops -- record YEAR DAY`; same measurement, requiring clean tracked main before measurement and recording. Appends the shared schema to `bench/YEAR.csv`, creates `bench/hosts/HOST.md` if absent. Text fields are quoted; unavailable metrics are empty. Wall uses separate solver runs under taskset only (no wrapper on macOS), with monotonic elapsed microseconds including process spawn and stdin/stdout piping. Linux CPU uses separate taskset perf stat -- solver runs without GNU time (default user+sys seconds printed to 1 ns, stored at 1 us resolution), interleaved with wall runs and across variants at the same run count. RSS uses separate pinned GNU time -f %M -- solver runs, taking peak KiB across runs; its CPU fields are unused. CPU and RSS include solver runtime startup. Numeric CSV fields round to integer schema units. If any CPU sample is missing or below 1 us, the whole CPU statistic is unavailable. A one-time perf probe treats explicit permission/PMU denial as unavailable work, instructions and CPU; timing/RSS continue. macOS and absent perf leave CPU unavailable. Counter/affinity limitations are reported and captured in host snapshots. |
-| Full gate | `nix develop -c just check` |
+| Full gate | `nix develop -c just check`; includes library Haddock coverage and diagnostic enforcement. |
 | Commit | Use the autommit skill; run `uv run --script ~/.claude/skills/autommit/scripts/cli.py` bare, with no flags or arguments and nothing staged. If unavailable or unfamiliar staged work exists, stop and report; never discard that work or commit another way. |
 | Create isolated checkout | `git -C MAIN worktree add -b BRANCH WORK main` |
 | Integrate | `git -C MAIN switch main`, then `git -C MAIN merge BRANCH` |

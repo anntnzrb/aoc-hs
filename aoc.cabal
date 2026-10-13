@@ -196,7 +196,7 @@ library ops
   import: language
   ghc-options: -hiedir=.hie/ops
   hs-source-dirs: app/aoc-ops/lib
-  exposed-modules: Ops.Logic Ops.Scaffold Ops.Runtime Ops.Command Ops.Measurement Ops.Process Ops.Benchmark
+  exposed-modules: Ops.Haddock Ops.Logic Ops.Scaffold Ops.Runtime Ops.Command Ops.Measurement Ops.Process Ops.Benchmark
   build-depends:
     , aoc
     , containers

@@ -4,6 +4,7 @@ module OpsTests (tests) where
 import Data.Text qualified as T
 import Ops.Benchmark (Result (Result), row)
 import Ops.Command (moduleName)
+import Ops.Haddock (checkHaddock)
 import Ops.Logic (Verdict (AlreadyComplete, Cooldown, RightAnswer, UnknownResponse, WrongAnswer), articleText, classify, docViolations, refuseExisting, statement, validAnswer)
 import Ops.Measurement (Sample (Sample), Stats (Stats), canonical, cpuList, cpuStats, csvHeader, csvRow, parsePerf, parsePerfCpu, parseUsage, perfUnavailable, runCount, stats)
 import Ops.Scaffold (preflightDirectories, scaffold)
@@ -11,7 +12,7 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 
 tests :: TestTree
-tests = testGroup "operations" [protocolTests, documentationTests, scaffoldTests, registrationTests, measurementTests, cpuMeasurementTests]
+tests = testGroup "operations" [protocolTests, documentationTests, haddockTests, scaffoldTests, registrationTests, measurementTests, cpuMeasurementTests]
 
 protocolTests :: TestTree
 protocolTests =
@@ -122,3 +123,24 @@ cpuMeasurementTests =
         , testCase "perf PMU absence is unavailable, solver failures are not" $
             map perfUnavailable ["Error:\nNo permission to enable instructions:u event.\n", "Cannot find PMU `cpu_core'. Missing kernel support?", "Error: No such device", "solver failed: invalid input", "unexpected perf parse error"] @?= [True, True, True, False, False]
         ]
+
+haddockTests :: TestTree
+haddockTests =
+    testGroup
+        "Haddock"
+        [ testCase "complete library" $ checkHaddock ["AoC.A", "AoC.B"] (complete <> " 100% ( 12 / 12) in 'AoC.B'\n") @?= Right [T.strip complete, "100% ( 12 / 12) in 'AoC.B'"]
+        , testCase "missing exported item" $ isLeft (checkHaddock ["AoC.A"] " 50% ( 1 / 2) in 'AoC.A'\n  Missing documentation for:\n    item (src/AoC/A.hs:1)\n") @?= True
+        , testCase "rounded percent cannot hide missing item" $ isLeft (checkHaddock ["AoC.A"] "100% ( 999 / 1000) in 'AoC.A'") @?= True
+        , testCase "missing coverage fails closed" $ isLeft (checkHaddock ["AoC.A"] "Up to date\n") @?= True
+        , testCase "duplicate coverage refused" $ isLeft (checkHaddock ["AoC.A"] (complete <> complete)) @?= True
+        , testCase "unexpected module refused" $ isLeft (checkHaddock ["AoC.B"] complete) @?= True
+        , testCase "malformed and invalid coverage refused" $
+            traverse_ (\row' -> isLeft (checkHaddock ["AoC.A"] row') @?= True) ["100% broken", "100% ( 0 / 0) in 'AoC.A'", "100% ( 2 / 1) in 'AoC.A'", "101% ( 1 / 1) in 'AoC.A'", "100% ( x / 1) in 'AoC.A'", "100% ( 1 / 1) in AoC.A"]
+        , testCase "markup warning refused" $ isLeft (checkHaddock ["AoC.A"] (complete <> "Warning: documentation could not be parsed\n")) @?= True
+        , testCase "external link warning refused" $ isLeft (checkHaddock ["AoC.A"] (complete <> "Warning: AoC.A: could not find link destinations for:\n    Data.Text.Text\n")) @?= True
+        , testCase "source-located warning refused" $ isLeft (checkHaddock ["AoC.A"] (complete <> "src/AoC/A.hs:1:1: warning: invalid markup\n")) @?= True
+        , testCase "Cabal package-index notice is not documentation" $ checkHaddock ["AoC.A"] ("Warning: The package list for 'hackage.haskell.org' does not exist.\n" <> complete) @?= Right [T.strip complete]
+        ]
+  where
+    complete :: Text
+    complete = " 100% ( 2 / 2) in 'AoC.A'\n"

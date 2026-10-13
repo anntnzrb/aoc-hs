@@ -5,13 +5,15 @@ import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.Text qualified as T
 import Effectful (Eff, (:>))
 import Ops.Benchmark (benchmark)
+import Ops.Haddock (checkHaddock)
 import Ops.Logic (Verdict (AlreadyComplete, Cooldown, RightAnswer, UnknownResponse, WrongAnswer), articleText, classify, docViolations, statement, validAnswer)
+import Ops.Process (process)
 import Ops.Runtime (Runtime, directories, exists, formatFiles, http, isDirectory, makeDirectory, output, readText, writeText)
 import Ops.Scaffold (dayText, preflightDirectories, scaffold)
 import Options.Applicative (Parser, ParserInfo, argument, command, eitherReader, hsubparser, info, long, metavar, str, switch)
-import System.FilePath (takeDirectory, takeExtension, takeFileName, (</>))
+import System.FilePath (dropExtension, splitDirectories, takeDirectory, takeExtension, takeFileName, (</>))
 
-data Command = Fetch Int Int Bool | Puzzle Int Int | Submit Int Int Int Text | New Int Int (Maybe Text) | Bench Int Int | Record Int Int | Doc
+data Command = Fetch Int Int Bool | Puzzle Int Int | Submit Int Int Int Text | New Int Int (Maybe Text) | Bench Int Int | Record Int Int | Doc | Haddock
 
 commandParser :: Parser Command
 commandParser =
@@ -23,6 +25,7 @@ commandParser =
             <> command "bench" (info' (Bench <$> year <*> day))
             <> command "record" (info' (Record <$> year <*> day))
             <> command "doc" (info' (pure Doc))
+            <> command "haddock" (info' (pure Haddock))
         )
   where
     info' :: Parser a -> ParserInfo a
@@ -69,6 +72,7 @@ execute = \case
     Bench year day -> benchmark False (year, day)
     Record year day -> benchmark True (year, day)
     Doc -> checkDocs
+    Haddock -> checkLibraryDocs
 
 failure :: (Runtime :> es) => Text -> Eff es Int
 failure message = output message $> 4
@@ -172,3 +176,12 @@ caseCollision path = do
     let name = takeFileName path
         aliases = [entry | entry <- entries, T.toCaseFold (toText entry) == T.toCaseFold (toText name), entry /= name]
     pure (unless (null aliases) (Left ("case-insensitive path collision: " <> toText path)))
+
+checkLibraryDocs :: (Runtime :> es) => Eff es Int
+checkLibraryDocs = do
+    paths <- walk "src/AoC"
+    let modules = paths <&> (dropExtension >>> splitDirectories >>> drop 1 >>> map toText >>> T.intercalate ".")
+    (standardOutput, standardError) <- process "cabal" ["haddock", "-v0", "lib:aoc"] ""
+    case checkHaddock modules (standardOutput <> "\n" <> standardError) of
+        Left message -> output (standardOutput <> standardError) >> failure message
+        Right rows -> traverse_ output rows $> 0
