@@ -1,6 +1,6 @@
 {- |
 approach: Encode traps as bits; unequal neighbours are the XOR of left and right shifts.
-cost: O(rows * ceil(width / word size)) bit operations, O(width) live bits; two seed passes.
+cost: O(rows * ceil(width / word size)) bit operations, O(width) live bits; one parsing pass, two seed passes per answer.
 trade: Integer shifts and population counts evolve arbitrary-width rows without per-tile allocation; a mask keeps both walls safe.
 -}
 module AoC.Y2016.Day18.Primary (solver) where
@@ -17,7 +17,7 @@ solver text = do
 safeTiles :: Int -> [Tile] -> Int
 safeTiles rows row = iterate nextRow encoded & take rows & foldl' countSafe 0
   where
-    width = length row
+    width = foldl' (\total _ -> total + 1) 0 row
     mask = bit width - 1
     encoded = foldl' (\bits tile -> shiftL bits 1 .|. encode tile) 0 row
 
