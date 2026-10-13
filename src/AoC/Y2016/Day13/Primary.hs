@@ -1,7 +1,7 @@
 {- |
 approach: Breadth-first layers find the target and count rooms within 50 steps.
 cost: O(V log V) time and O(V) memory for visited coordinates; one input pass and one shared graph traversal.
-trade: Shared lazy layers reuse the target search for the 50-step room count, retaining only the prefix needed by the second answer.
+trade: Shared lazy layers reuse the target search for the 50-step room count; the pending second answer retains the entire searched prefix until it is evaluated.
 -}
 module AoC.Y2016.Day13.Primary (solver) where
 
