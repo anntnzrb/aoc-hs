@@ -20,14 +20,16 @@ tests =
         , testCase "isolated origin" (breadthFirstLayers successors 5 @?= [(0, one 5)])
         , testCase "edges are directed" (shortestDistance successors (== 1) 4 @?= Nothing)
         , testCase "finite prefix of infinite graph" (shortestDistance (\n -> [n + 1]) (== (5 :: Integer)) 0 @?= Just 5)
-        , testCase "integer search agrees for every origin and target" $
-            for_ [(origin, target) | origin <- [-1 .. 5], target <- [-1 .. 5]] $ \(origin, target) ->
-                shortestIntDistance successors (== target) origin @?= shortestDistance successors (== target) origin
-        , testCase "integer distances agree including negative vertices" $
-            for_ [-1 .. 5] $ \origin ->
-                IntMap.toList (intDistances successors origin) @?= Map.toList (distances successors origin)
+        , testCase "integer search agrees for every origin and target" (for_ [(origin, target) | origin <- [-1 .. 5], target <- [-1 .. 5]] compareSearch)
+        , testCase "integer distances agree including negative vertices" (for_ [-1 .. 5] compareDistances)
         , testCase "integer search stops in an infinite graph" (shortestIntDistance (\n -> [n + 1]) (== 5) 0 @?= Just 5)
         ]
+
+compareSearch :: (Int, Int) -> IO ()
+compareSearch (origin, target) = shortestIntDistance successors (== target) origin @?= shortestDistance successors (== target) origin
+
+compareDistances :: Int -> IO ()
+compareDistances origin = IntMap.toList (intDistances successors origin) @?= Map.toList (distances successors origin)
 
 successors :: Int -> [Int]
 successors = \case
