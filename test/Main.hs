@@ -2,6 +2,7 @@
 module Main (main) where
 
 import AoC.SharedTests qualified
+import AoC.Y2016.Tests qualified
 import OpsTests qualified
 
 -- ops:test-imports
@@ -24,6 +25,7 @@ main = do
             [ testGroup "fixtures" tests
             , OpsTests.tests
             , AoC.SharedTests.tests
+            , AoC.Y2016.Tests.tests
             -- ops:test-entries
             ]
 
