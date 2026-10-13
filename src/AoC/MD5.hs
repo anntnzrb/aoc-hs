@@ -24,4 +24,4 @@ hexNibbles = BS.unpack >>> concatMap (\byte -> [byte `shiftR` 4, byte .&. 15])
 md5HexRepeated :: Int -> ByteString -> ByteString
 md5HexRepeated rounds bytes
     | rounds <= 0 = bytes
-    | otherwise = md5HexRepeated (rounds - 1) (md5Hex bytes)
+    | otherwise = md5HexRepeated (rounds - 1) $! md5Hex bytes
