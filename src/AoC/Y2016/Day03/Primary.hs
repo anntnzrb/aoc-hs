@@ -11,11 +11,14 @@ import AoC.Y2016.Day03.Input (Triangle (Triangle), parseInput)
 solver :: Solver
 solver text = do
     triangles <- parseInput text
-    pure (Answers (show (countTriangles triangles)) (Just (show (verticalCount triangles))))
+    -- Incomplete three-row groups leave part two undefined: print the placeholder.
+    pure (Answers (show (countTriangles triangles)) (Just (show (fromMaybe 0 (verticalCount triangles)))))
 
--- Incomplete three-row groups leave part two undefined: print the placeholder.
-verticalCount :: [Triangle] -> Int
-verticalCount = unfoldr columns >>> sequenceA >>> maybe 0 (concat >>> countTriangles)
+verticalCount :: [Triangle] -> Maybe Int
+verticalCount =
+    unfoldr columns
+        >>> sequenceA
+        >>> fmap (concat >>> countTriangles)
 
 columns :: [Triangle] -> Maybe (Maybe [Triangle], [Triangle])
 columns = \case
@@ -26,7 +29,7 @@ columns = \case
     [_, _] -> Just (Nothing, [])
 
 countTriangles :: [Triangle] -> Int
-countTriangles = foldl' (\count sides -> count + fromEnum (possible sides)) 0
+countTriangles = foldMap (Sum . fromEnum . possible) >>> getSum
 
 possible :: Triangle -> Bool
 possible (Triangle a b c) = a + b > c && a + c > b && b + c > a
