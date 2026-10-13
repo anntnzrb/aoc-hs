@@ -5,6 +5,8 @@ trade: Compresses corridor walks into exact distances; stores subset endpoints.
 -}
 module AoC.Y2016.Day24.Primary (solver) where
 
+import AoC.Grid (orthogonal)
+import AoC.Search qualified as Search
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day24.Input (Input (locations, passages), parseInput)
 import Data.Bits (setBit, testBit)
@@ -25,27 +27,7 @@ solver text = do
     pure (Answers (show answer) (Just (show returning)))
 
 locationDistances :: Input -> Distances
-locationDistances input = Map.fromList [(source, Map.fromList [(target, distance) | (target, position) <- Map.toList input.locations, Just distance <- [Map.lookup position reached]]) | (source, origin) <- Map.toList input.locations, let reached = breadthFirst input.passages origin]
-
-breadthFirst :: Set (Int, Int) -> (Int, Int) -> Map (Int, Int) Int
-breadthFirst walkable origin = go 0 (one origin) Map.empty
-  where
-    go :: Int -> Set (Int, Int) -> Map (Int, Int) Int -> Map (Int, Int) Int
-    go distance frontier visited
-        | Set.null frontier = visited
-        | otherwise = go (distance + 1) next reached
-      where
-        reached = Set.foldl' (\known position -> Map.insert position distance known) visited frontier
-        next =
-            frontier
-                & Set.toList
-                & concatMap neighbors
-                & Set.fromList
-                & (`Set.intersection` walkable)
-                & Set.filter (`Map.notMember` reached)
-
-neighbors :: (Int, Int) -> [(Int, Int)]
-neighbors (row, column) = [(row - 1, column), (row + 1, column), (row, column - 1), (row, column + 1)]
+locationDistances input = Map.fromList [(source, Map.fromList [(target, distance) | (target, position) <- Map.toList input.locations, Just distance <- [Map.lookup position reached]]) | (source, origin) <- Map.toList input.locations, let reached = Search.distances (orthogonal >>> filter (`Set.member` input.passages)) origin]
 
 extend :: Distances -> Routes -> Routes
 extend distances states = Map.fromListWith min [((setBit visited target, target), cost + distance) | ((visited, source), cost) <- Map.toList states, (target, distance) <- Map.toList (Map.findWithDefault Map.empty source distances), not (testBit visited target)]
