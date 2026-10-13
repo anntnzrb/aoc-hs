@@ -1,7 +1,7 @@
 {- |
-approach: Fill both disks by reversed, complemented growth; reduce equal pairs to bits.
-cost: O(n + D) time and memory for seed length n and largest disk D; two seed passes.
-trade: Strict bytes keeps the literal transformation compact without mutable storage.
+approach: Reduce each checksum block to parity, querying mirrored dragon prefixes without materializing the disk.
+cost: O(c (n + log D)) time, O(n + c + log D) memory for seed n, disk D and odd checksum length c; one parse and encoding pass, bounded seed prefix traversals.
+trade: Prefix parity cancels the reflected halves, replacing disk-sized byte buffers with logarithmic queries; strict bytes retain the seed and output.
 -}
 module AoC.Y2016.Day16.Primary (solver) where
 
@@ -20,28 +20,16 @@ encode False = 48
 encode True = 49
 
 diskChecksum :: Int -> ByteString -> ByteString
-diskChecksum size seed =
-    iterate grow seed
-        & find ((>= size) . Bytes.length)
-        & fromMaybe seed
-        & Bytes.take size
-        & checksum
-
-grow :: ByteString -> ByteString
-grow bits = bits <> "0" <> (bits & Bytes.reverse & Bytes.map complement)
+diskChecksum size seed = Bytes.pack [encode (if block == 1 then parity else not parity) | end <- [block, 2 * block .. size], let parity = prefix (end - block) /= prefix end]
   where
-    complement :: Word8 -> Word8
-    complement 48 = 49
-    complement _ = 48
+    -- Every positive number of pair reductions yields the complement of block parity.
+    block = 2 ^ (iterate (`div` 2) size & takeWhile even & length)
+    levels = iterate (\n -> 2 * n + 1) (Bytes.length seed) & takeWhile (< size) & reverse
+    prefix = prefixParity seed levels
 
-reduce :: ByteString -> ByteString
-reduce = Bytes.unfoldr pair
-  where
-    pair :: ByteString -> Maybe (Word8, ByteString)
-    pair bits = do
-        (a, rest) <- Bytes.uncons bits
-        (b, remaining) <- Bytes.uncons rest
-        pure (encode (a == b), remaining)
-
-checksum :: ByteString -> ByteString
-checksum bits = iterate reduce bits & find (odd . Bytes.length) & fromMaybe bits
+prefixParity :: ByteString -> [Int] -> Int -> Bool
+prefixParity seed [] count = Bytes.take count seed & Bytes.foldl' (\parity byte -> parity /= (byte == 49)) False
+prefixParity seed (previous : levels) count
+    | count <= previous = prefixParity seed levels count
+    -- The right prefix is a complemented suffix: its parity cancels the full left half.
+    | otherwise = prefixParity seed levels (2 * previous + 1 - count) /= odd (count - previous - 1)
