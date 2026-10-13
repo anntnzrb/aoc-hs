@@ -663,9 +663,10 @@ Also note `cabal build aoc` is ambiguous (library and executable): use
 - Codex workers can stop with a background check still running; briefs must
   say to run checks in the foreground to completion.
 - Scaffolding a whole year at once pushed the year registry past hlint's import
-  and function-length limits; `.hlint.yaml` now exempts `AoC.Y*.Registry` from
-  those two smells with a written reason. Gate scaffolds before committing
-  them.
+  and function-length limits; year test aggregators also reach the import
+  limit. Both import and list every day by construction, so `.hlint.yaml`
+  exempts `AoC.Y*.Registry` from both smells and `AoC.Y*.Tests` from the import
+  smell with a written reason. Gate scaffolds before committing them.
 - Deleting or renaming a module leaves stale HIE files under `.hie/`, which
   weeder and stan still analyse; remove them with the module.
 - stan rejects list `length` and `reverse`, wildcard-only alternatives and

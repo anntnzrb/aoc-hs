@@ -55,8 +55,9 @@
 - smell: {type: many arg functions, limit: 4}
 - smell: {type: many imports, limit: 12}
 
-# A year registry imports and lists every day by construction.
+# Year registries and test aggregators import and list every day by construction.
 - ignore: {name: Many imports, within: "AoC.Y*.Registry"}
+- ignore: {name: Many imports, within: "AoC.Y*.Tests"}
 - ignore: {name: Long function, within: "AoC.Y*.Registry"}
 
 - functions:
