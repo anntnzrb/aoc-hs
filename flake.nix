@@ -40,11 +40,17 @@
             # not mkShellArgs.packages: shellFor overrides it with the
             # project's Haskell packages
             mkShellArgs = {
-              nativeBuildInputs = with pkgs; [
-                jq # gates on stan's JSON: stan fails only on Error severity
-                just
-                nixfmt # formats flake.nix in `just fmt`
-              ];
+              nativeBuildInputs =
+                (with pkgs; [
+                  jq # gates on stan's JSON: stan fails only on Error severity
+                  just
+                  nixfmt # formats flake.nix in `just fmt`
+                  time # child CPU time and max RSS, GNU on both platforms
+                ])
+                ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+                  pkgs.perf
+                  pkgs.util-linux
+                ];
               RELUDE_HLINT = "${inputs.relude-src}/.hlint.yaml";
             };
           };

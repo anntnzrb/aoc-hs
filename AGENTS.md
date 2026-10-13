@@ -331,7 +331,8 @@ docs/journal/2015.md          learning log
   a needed feature requires it. Move to a newer GHC only through
   `nix flake update` once nixpkgs changes its default.
 - The devshell holds GHC, cabal-install (top-level `pkgs.cabal-install`),
-  hlint, fourmolu, weeder, stan, jq, `just` and `nixfmt`. HLS, ghcid and Hoogle
+  hlint, fourmolu, weeder, stan, jq, `just`, `nixfmt` and GNU time; Linux also
+  has perf and util-linux (taskset). HLS, ghcid and Hoogle
   are off. A tool enters the flake with its first use.
 - The gate runs, all as errors: `cabal build all`, `cabal test all`, format
   drift, hlint with relude's hints, weeder (dead code) and stan (anti-patterns
@@ -599,5 +600,22 @@ answer.
 - The `relude (Relude as Prelude)` mixin exposes only `Prelude`, hiding
   `Relude.Extra.*`. hlint suggests an unavailable `universe` import for bare
   enum bounds; explicit `[minBound @Heading .. maxBound]` compiles and lints.
+- The library must depend on megaparsec before the first day is dispatched;
+  setup omitted it and blocked the first worker.
+- `Answers` bundles both parts, so a `Left` from part 2 fails part 1 too. A
+  part undefined for some valid inputs keeps a documented placeholder rather
+  than failing.
+- A day the account has already solved shows part 2 in the first statement
+  fetch; expect "already complete" and plan an independent reference.
+- autommit ignores the commit-scope list (it produced `registry`, `cabal`,
+  `bench`); check subjects after each run and report mismatches.
+- Measure wall, CPU and RSS in separate runs: wrapping wall runs in perf and
+  GNU time tripled wall time on 2015/01. GNU time's CPU fields have 10 ms
+  resolution and read as zero for millisecond runs; CPU comes from perf
+  user+sys.
+- Hybrid Intel perf splits `instructions:u` into `cpu_core` and `cpu_atom`
+  events; pinned to a P-core, the atom event reads `<not counted>`.
+- Codex workers can stop with a background check still running; briefs must
+  say to run checks in the foreground to completion.
 
 </repository_guidelines>
