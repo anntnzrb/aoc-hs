@@ -1,7 +1,7 @@
 {- |
-approach: Alternate-seat rounds for part one; undo opposite removals for part two.
-cost: O(n) arithmetic steps, O(1) live integers; one input pass.
-trade: Survivor recurrences avoid storing or rotating the circle.
+approach: Alternate-seat rounds for part one; solve the opposite-removal recurrence between powers of three for part two.
+cost: O(log n) arithmetic steps, O(log n) bits of live integers; one input pass.
+trade: Power boundaries replace one recurrence step per elf with three exact linear cases, without storing the circle.
 -}
 module AoC.Y2016.Day19.Primary (solver) where
 
@@ -20,11 +20,12 @@ leftWinner count = 2 * (count - power) + 1
     power = iterate (* 2) 1 & takeWhile (<= count) & foldl' max 1
 
 acrossWinner :: Integer -> Integer
-acrossWinner count = foldl' restore 1 [2 .. count]
+acrossWinner count
+    | count == power = power
+    | count <= 2 * power = count - power
+    | otherwise = 2 * count - 3 * power
   where
-    -- Undo rotation to the next elf, then reinsert the removed opposite seat.
-    restore :: Integer -> Integer -> Integer
-    restore winner size
-        | winner < size `div` 2 = winner + 1
-        | winner == size - 1 = 1
-        | otherwise = winner + 2
+    -- Undoing rotation and reinserting the opposite seat increments the winner
+    -- by one below half the new size, wraps size-1 to one, otherwise adds two.
+    -- Starting at W(p)=p, this gives +1 until 2p, then +2 until W(3p)=3p.
+    power = iterate (* 3) 1 & takeWhile (<= count) & foldl' max 1
