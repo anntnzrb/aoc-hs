@@ -43,7 +43,10 @@ library
   ghc-options:     -hiedir=.hie/lib
   hs-source-dirs:  src
   build-depends:
+    , base16-bytestring
+    , bytestring
     , containers
+    , cryptohash-md5
     , megaparsec
   exposed-modules:
     AoC.Registry
