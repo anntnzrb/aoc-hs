@@ -53,6 +53,7 @@ library
     AoC.Solution
     AoC.Assembunny
     AoC.MD5
+    AoC.Search
     AoC.Y2016.Day01.Primary
     AoC.Y2016.Day01.Input
     AoC.Y2016.Registry
@@ -148,7 +149,7 @@ test-suite test
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        Main.hs
-  other-modules: OpsTests AoC.AssembunnyTests AoC.MD5Tests
+  other-modules: OpsTests AoC.AssembunnyTests AoC.MD5Tests AoC.SearchTests
 
 
 
