@@ -1,7 +1,7 @@
 {- |
 approach: Interpret each instruction with four integer registers and a relative program counter.
-cost: O(n + t log n) time, O(n) memory; one parse pass and one indexing pass for n instructions and t executed steps.
-trade: A direct interpreter preserves the instruction semantics without assuming a particular program; part 2 is unfinished.
+cost: O(n + t log n) time, O(n) memory; one parse pass and one indexing pass for n instructions and t total executed steps across both runs.
+trade: A direct interpreter preserves the instruction semantics without assuming a particular program; the two initial register states share the same parsed program.
 -}
 module AoC.Y2016.Day12.Primary (solver) where
 
@@ -31,7 +31,7 @@ solver :: Solver
 solver text = do
     Input instructions <- parseInput text
     let program = Map.fromDistinctAscList (zip [0 ..] instructions)
-    pure (Answers (show (execute program (Registers 0 0 0 0))) (Just "0"))
+    pure (Answers (show (execute program (Registers 0 0 0 0))) (Just (show (execute program (Registers 0 0 1 0)))))
 
 execute :: Map Integer Instruction -> Registers -> Integer
 execute program initial =
