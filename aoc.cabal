@@ -53,6 +53,75 @@ library
     AoC.Y2016.Registry
     AoC.Registry.Types
 
+    AoC.Y2016.Day02.Primary
+    AoC.Y2016.Day02.Input
+
+    AoC.Y2016.Day03.Primary
+    AoC.Y2016.Day03.Input
+
+    AoC.Y2016.Day04.Primary
+    AoC.Y2016.Day04.Input
+
+    AoC.Y2016.Day05.Primary
+    AoC.Y2016.Day05.Input
+
+    AoC.Y2016.Day06.Primary
+    AoC.Y2016.Day06.Input
+
+    AoC.Y2016.Day07.Primary
+    AoC.Y2016.Day07.Input
+
+    AoC.Y2016.Day08.Primary
+    AoC.Y2016.Day08.Input
+
+    AoC.Y2016.Day09.Primary
+    AoC.Y2016.Day09.Input
+
+    AoC.Y2016.Day10.Primary
+    AoC.Y2016.Day10.Input
+
+    AoC.Y2016.Day11.Primary
+    AoC.Y2016.Day11.Input
+
+    AoC.Y2016.Day12.Primary
+    AoC.Y2016.Day12.Input
+
+    AoC.Y2016.Day13.Primary
+    AoC.Y2016.Day13.Input
+
+    AoC.Y2016.Day14.Primary
+    AoC.Y2016.Day14.Input
+
+    AoC.Y2016.Day15.Primary
+    AoC.Y2016.Day15.Input
+
+    AoC.Y2016.Day16.Primary
+    AoC.Y2016.Day16.Input
+
+    AoC.Y2016.Day17.Primary
+    AoC.Y2016.Day17.Input
+
+    AoC.Y2016.Day18.Primary
+    AoC.Y2016.Day18.Input
+
+    AoC.Y2016.Day19.Primary
+    AoC.Y2016.Day19.Input
+
+    AoC.Y2016.Day20.Primary
+    AoC.Y2016.Day20.Input
+
+    AoC.Y2016.Day21.Primary
+    AoC.Y2016.Day21.Input
+
+    AoC.Y2016.Day22.Primary
+    AoC.Y2016.Day22.Input
+
+    AoC.Y2016.Day23.Primary
+    AoC.Y2016.Day23.Input
+
+    AoC.Y2016.Day24.Primary
+    AoC.Y2016.Day24.Input
+
     -- ops:solution-modules
 
 executable aoc
@@ -72,6 +141,29 @@ test-suite test
   hs-source-dirs: test
   main-is:        Main.hs
   other-modules: OpsTests
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     -- ops:test-modules
   build-depends:
