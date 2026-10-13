@@ -10,13 +10,15 @@ import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day12.Input (Input (Input), parseInput)
 
 {- | Return register a after execution with c initially 0 and 1; other registers start
-at zero. Input grammar errors are returned as text.
+at zero. Both initial states require a halting program; execution such as @jnz 1 0@
+never returns. Input grammar errors are returned as text.
 -}
 solver :: Solver
 solver text = do
     Input instructions <- parseInput text
     answers (show (execute instructions [])) (Just (show (execute instructions [(C, 1)])))
 
+-- | Read register a after halting; requires the program to halt from this state.
 execute :: [Instruction] -> [(Register, Integer)] -> Integer
 execute instructions initial =
     initialise instructions initial
