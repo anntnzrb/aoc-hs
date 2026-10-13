@@ -84,18 +84,18 @@ edit password = \case
     SwapLetter a b -> map (\letter -> if letter == letterValue a then letterValue b else if letter == letterValue b then letterValue a else letter) password
     Rotate direction count -> rotateList (case direction of Leftward -> count; Rightward -> (8 - count `mod` 8) `mod` 8) password
     RotateLetter letter -> rotateLetter (letterValue letter) password
-    Reverse spanValue ->
-        let (start, end) = bounds spanValue
-            lo = fromIntegral start
-            size = fromIntegral (end - start + 1)
-         in take lo password <> (take size (drop lo password) & toText & T.reverse & toString) <> drop (lo + size) password
-    Move x y ->
-        let source = fromIntegral x
-            target = fromIntegral y
-            remaining = take source password <> drop (source + 1) password
-         in take target remaining <> [at source] <> drop target remaining
+    Reverse spanValue -> reverseSpan (bounds spanValue)
+    Move x y -> moveLetter (fromIntegral x) (fromIntegral y)
   where
     at index = fromMaybe '?' (viaNonEmpty head (drop index password))
+    reverseSpan :: (Natural, Natural) -> [Char]
+    reverseSpan (start, end) = take lo password <> (take size (drop lo password) & toText & T.reverse & toString) <> drop (lo + size) password
+      where
+        lo = fromIntegral start
+        size = fromIntegral (end - start + 1)
+    moveLetter source target = take target remaining <> [at source] <> drop target remaining
+      where
+        remaining = take source password <> drop (source + 1) password
 
 rotateLetter :: Char -> [Char] -> [Char]
 rotateLetter letter password = rotateList (fromIntegral ((8 - amount `mod` 8) `mod` 8)) password
