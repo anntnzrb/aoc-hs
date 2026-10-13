@@ -19,6 +19,22 @@ import Data.ByteString qualified as BS
 
 data Route = Route {row :: Int, column :: Int, path :: [Word8], depth :: Int, context :: MD5.Ctx}
 
+data Direction = Upward | Downward | Leftward | Rightward
+
+directionLetter :: Direction -> Char
+directionLetter = \case
+    Upward -> 'U'
+    Downward -> 'D'
+    Leftward -> 'L'
+    Rightward -> 'R'
+
+directionOffset :: Direction -> (Int, Int)
+directionOffset = \case
+    Upward -> (-1, 0)
+    Downward -> (1, 0)
+    Leftward -> (0, -1)
+    Rightward -> (0, 1)
+
 solver :: Solver
 solver text = do
     Input passcode <- parseInput text
@@ -45,15 +61,21 @@ nextRoutes :: Route -> [Route]
 nextRoutes route
     | atVault route = []
     | otherwise =
-        [ Route nextRow nextColumn (fromIntegral (ord direction) : route.path) (route.depth + 1) (MD5.update route.context (one (fromIntegral (ord direction))))
-        | (door, (direction, dr, dc)) <- zip doors moves
-        , door >= 11
+        [ Route nextRow nextColumn (letter : route.path) (route.depth + 1) (MD5.update route.context (one letter))
+        | direction <- openDirections route.context
+        , let (dr, dc) = directionOffset direction
+        , let letter = fromIntegral (ord (directionLetter direction))
         , let nextRow = route.row + dr
         , let nextColumn = route.column + dc
         , nextRow >= 0 && nextRow < 4
         , nextColumn >= 0 && nextColumn < 4
         ]
+
+openDirections :: MD5.Ctx -> [Direction]
+openDirections context = [direction | (door, direction) <- zip doors [Upward, Downward, Leftward, Rightward], door >= 11]
   where
-    doors = MD5.finalize route.context & BS.take 2 & hexNibbles
-    moves :: [(Char, Int, Int)]
-    moves = [('U', -1, 0), ('D', 1, 0), ('L', 0, -1), ('R', 0, 1)]
+    -- Digest nibbles describe doors in up, down, left, right order.
+    doors =
+        MD5.finalize context
+            & BS.take 2
+            & hexNibbles
