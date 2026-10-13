@@ -150,7 +150,7 @@ test-suite test
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        Main.hs
-  other-modules: OpsTests AoC.AssembunnyTests AoC.MD5Tests AoC.SearchTests AoC.GridTests AoC.SharedTests AoC.Y2016.Tests
+  other-modules: OpsTests AoC.AssembunnyTests AoC.MD5Tests AoC.SearchTests AoC.GridTests AoC.SharedTests AoC.Y2016.Tests AoC.Y2016.Day11
 
 
 
