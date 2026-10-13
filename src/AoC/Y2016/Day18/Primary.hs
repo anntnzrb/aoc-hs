@@ -1,7 +1,7 @@
 {- |
 approach: Evolve rows with safe walls; the four trap rules mean unequal neighbours.
 cost: O(rows * width) time, O(width) live memory; one input parse pass.
-trade: Streaming lists express the local rule directly without storing the room.
+trade: Streaming 40 and 400000 rows with lists expresses the local rule directly without storing the room.
 -}
 module AoC.Y2016.Day18.Primary (solver) where
 
@@ -11,7 +11,7 @@ import AoC.Y2016.Day18.Input (Input (Input), Tile (Safe, Trap), parseInput)
 solver :: Solver
 solver text = do
     Input row <- parseInput text
-    pure (Answers (show (safeTiles 40 (toList row))) (Just "0"))
+    pure (Answers (show (safeTiles 40 (toList row))) (Just (show (safeTiles 400000 (toList row)))))
 
 safeTiles :: Int -> [Tile] -> Int
 safeTiles rows = iterate nextRow >>> take rows >>> foldl' countSafe 0
