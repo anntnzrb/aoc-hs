@@ -52,6 +52,8 @@ import AoC.Y2016.Day23.Primary qualified as Day23Primary
 
 import AoC.Y2016.Day24.Primary qualified as Day24Primary
 
+import AoC.Y2016.Day25.Primary qualified as Day25Primary
+
 -- ops:year-imports
 
 solvers :: Map (Int, Variant) Solver
@@ -81,5 +83,6 @@ solvers =
         , ((22, Primary), Day22Primary.solver)
         , ((23, Primary), Day23Primary.solver)
         , ((24, Primary), Day24Primary.solver)
+        , ((25, Primary), Day25Primary.solver)
         -- ops:year-entries
         ]

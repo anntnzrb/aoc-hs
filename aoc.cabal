@@ -125,6 +125,9 @@ library
     AoC.Y2016.Day24.Primary
     AoC.Y2016.Day24.Input
 
+    AoC.Y2016.Day25.Primary
+    AoC.Y2016.Day25.Input
+
     -- ops:solution-modules
 
 executable aoc
@@ -144,6 +147,7 @@ test-suite test
   hs-source-dirs: test
   main-is:        Main.hs
   other-modules: OpsTests
+
 
 
 
