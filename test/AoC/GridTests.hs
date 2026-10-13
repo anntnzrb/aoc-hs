@@ -15,9 +15,17 @@ tests =
                 @?= replicate
                     4
                     (True, True)
+        , testCase "unsigned neighbours are adjacent symmetrically" $
+            [(adjacent unsignedOrigin position, adjacent position unsignedOrigin) | position <- orthogonal unsignedOrigin]
+                @?= replicate
+                    4
+                    (True, True)
         , testCase "same, diagonal and distant points are not adjacent" $
             map (adjacent origin) [origin, (1, 1), (2, 0)] @?= [False, False, False]
         ]
   where
     origin :: (Int, Int)
     origin = (0, 0)
+
+    unsignedOrigin :: (Word, Word)
+    unsignedOrigin = (2, 3)
