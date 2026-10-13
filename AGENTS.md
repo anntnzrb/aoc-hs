@@ -315,6 +315,15 @@ docs/journal/2015.md          learning log
   derives its working representation locally. An exploration studying parsing
   or representation may own its parser or model; it still implements `Solver`
   and passes the same comparisons.
+- `Input` constructors and fields stay exported so solvers pattern match on
+  the domain model; the day's parser is the only code that constructs
+  `Input` values and is therefore the validation boundary. Never construct
+  an `Input` value outside its parser and generators that model the
+  statement's grammar. Make illegal states unrepresentable with types where
+  that costs nothing (`Natural`, ADTs, `NonEmpty`); reserve opaque types with
+  smart constructors for invariants that other modules rely on (for example
+  `AoC.Solution.Answers` and bounded coordinates). Pattern synonyms stay
+  banned, so hiding an `Input` constructor costs pattern matching.
 - `aoc` is the solution filter and performs IO for solutions; `aoc-ops`
   implements the operations (network, process spawning, measurement). Keep
   them separate. With empty stdin, `aoc` exits 0 and prints nothing without
