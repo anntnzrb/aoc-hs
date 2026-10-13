@@ -1,6 +1,6 @@
 {- |
-approach: Grow the reversed, complemented binary state; reduce equal pairs to bits.
-cost: O(n + D) time and memory for seed length n and disk size D; two seed passes.
+approach: Fill both disks by reversed, complemented growth; reduce equal pairs to bits.
+cost: O(n + D) time and memory for seed length n and largest disk D; two seed passes.
 trade: Strict bytes keeps the literal transformation compact without mutable storage.
 -}
 module AoC.Y2016.Day16.Primary (solver) where
@@ -13,7 +13,7 @@ solver :: Solver
 solver text = do
     Input bits <- parseInput text
     let seed = bits & toList & map encode & Bytes.pack
-    pure (Answers (decodeUtf8 (diskChecksum 272 seed)) (Just "0"))
+    pure (Answers (decodeUtf8 (diskChecksum 272 seed)) (Just (decodeUtf8 (diskChecksum 35651584 seed))))
 
 encode :: Bool -> Word8
 encode False = 48
