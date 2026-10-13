@@ -2,6 +2,7 @@
 module Main (main) where
 
 import AoC.AssembunnyTests qualified
+import AoC.MD5Tests qualified
 import OpsTests qualified
 
 -- ops:test-imports
@@ -24,6 +25,7 @@ main = do
             [ testGroup "fixtures" tests
             , OpsTests.tests
             , AoC.AssembunnyTests.tests
+            , AoC.MD5Tests.tests
             -- ops:test-entries
             ]
 
