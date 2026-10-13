@@ -1,6 +1,6 @@
 module AoC.MD5Tests (tests) where
 
-import AoC.MD5 (md5Hex)
+import AoC.MD5 (hexNibbles, md5Hex, md5HexRepeated)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 
