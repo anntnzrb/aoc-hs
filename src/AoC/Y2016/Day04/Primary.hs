@@ -23,9 +23,15 @@ storage :: Room -> Bool
 storage room =
     room.words
         & toList
-        & map (toString >>> map (rotate room.sector) >>> toText)
+        & map decrypt
         & unwords
         & (== "northpole object storage")
+  where
+    decrypt :: Text -> Text
+    decrypt =
+        toString
+            >>> map (rotate room.sector)
+            >>> toText
 
 rotate :: Natural -> Char -> Char
 rotate sector letter = chr (ord 'a' + (ord letter - ord 'a' + fromIntegral (sector `mod` 26)) `mod` 26)
