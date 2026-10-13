@@ -18,7 +18,7 @@ import Crypto.Hash.MD5 qualified as MD5
 import Data.ByteString qualified as BS
 import Data.Char (isOctDigit)
 import Data.Map.Strict qualified as Map
-import Data.Text qualified as Text
+import Data.Text qualified as T
 
 data Passwords = Passwords
     { sequential :: Text
@@ -66,7 +66,7 @@ increment bytes = case BS.mapAccumR carry True bytes of
 
 addHit :: Passwords -> (Char, Char) -> Passwords
 addHit passwords (position, value) =
-    Passwords (Text.take 8 (passwords.sequential <> one position)) filled
+    Passwords (T.take 8 (passwords.sequential <> one position)) filled
   where
     filled
         | isOctDigit position = Map.insertWith (\_ old -> old) position value passwords.positional
