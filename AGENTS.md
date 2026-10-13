@@ -65,7 +65,10 @@ These rules bind every agent. Include this section in every delegated solve brie
 - The repository section lists the exact tools, versions and enabled checks that constitute the standard: compiler or interpreter modes, lint, formatting, static analysis and runtime sanitizers (or their closest equivalents), all as errors.
 - Never relax a check to get green. A suppression needs a written reason next to it, and only for a false positive the code cannot avoid.
 - Fewer lines win. DRY, high cohesion, low coupling: shared code sits behind cohesive interfaces documented in their own header comments; the repository defines those interfaces.
-- A check counts as verified only on the platform it ran on. Submit after the full gate on the available platform; verify other required platforms later and report them as not run until then.
+- A check counts as verified only on the platform it ran on. Submit as soon as
+  the part's tests pass and the personal input runs; the full gate follows
+  before the part's commit. Verify other required platforms later and report
+  them as not run until then.
 
 ## Operation contracts (all roles)
 
@@ -136,7 +139,9 @@ When a delegate misreads a rule, the orchestrator fixes this file as well as the
 
 1. Resolve YEAR from the user's explicit request, then the repository's non-secret year environment setting. If neither gives a year, stop and ask before any fetch or submit. State it and put it in every brief; never read the session file for it.
 2. On a solve request, fetch each day's input and part-1 statement in MAIN before dispatching its worker.
-3. Run the new operation for each day in MAIN and commit its scaffold before creating that day's checkout.
+3. Run the new operation for each day in MAIN, run the full gate on newly
+   scaffolded days, and commit the scaffold before creating that day's
+   checkout.
 4. Create one isolated checkout from the main branch per day and assign a worker with explicit YEAR, DAY, MAIN, WORK, ownership and the No outside solutions rules. Run ready days in parallel. Workers copy caches from MAIN into WORK.
 5. Let workers submit after their own required checks. Do not add an orchestrator check before submission. Continue independent work while they run.
 6. If a worker cannot make its tests pass after two honest attempts, take over that day. A self-inflicted editing slip the worker has already repaired does not count.
@@ -153,19 +158,33 @@ When a delegate misreads a rule, the orchestrator fixes this file as well as the
 
 ## Solve part 1 (day worker)
 
-1. Use the committed scaffold already in WORK and write statement-derived part-1 fixtures.
-2. Write the primary part-1 implementation, with the unfinished-part placeholder.
-3. Run tests, run personal input, and pass the full gate in WORK on the available platform. Record the answer in the worker's report and its assigned scratch location.
-4. Commit part 1 before writing part 2 (a new file's two parts would otherwise land in one commit).
-5. Submit from MAIN, where the account session lives. Apply the response handling below.
-6. After acceptance or already-complete verification, refresh the statement in MAIN and copy it into WORK. If no computational part 2 exists, remove its placeholder, pass the full gate and commit before reporting completion.
+1. Use the committed scaffold already in WORK and write statement-derived
+   part-1 fixtures.
+2. Write the primary part-1 implementation, with the unfinished-part
+   placeholder.
+3. Run tests and personal input in WORK on the available platform. Record
+   the answer in the worker's report and its assigned scratch location.
+4. Submit from MAIN, where the account session lives. Apply the response
+   handling below.
+5. Pass the full gate in WORK on the available platform.
+6. Commit part 1 before writing part 2 (a new file's two parts would otherwise
+   land in one commit).
+7. After acceptance or already-complete verification, refresh the statement
+   in MAIN and copy it into WORK. If no computational part 2 exists, remove
+   its placeholder, pass the full gate and commit before reporting completion.
 
 ## Solve part 2 (day worker)
 
-1. If the statement has computational part 2, add statement-derived fixtures containing both answers.
-2. Extend the primary, run tests and personal input, and pass the full gate in WORK.
-3. Commit part 2 and submit from MAIN. Apply the response handling below.
-4. Stop and report the completed answers. Do not start explorations without a request.
+1. If the statement has computational part 2, add statement-derived fixtures
+   containing both answers.
+2. Extend the primary, run tests and personal input in WORK. Record the
+   answer in the worker's report and its assigned scratch location.
+3. Submit from MAIN, where the account session lives. Apply the response
+   handling below.
+4. Pass the full gate in WORK.
+5. Commit part 2.
+6. Stop and report the completed answers. Do not start explorations without a
+   request.
 
 ## Handle submission responses (day worker)
 
@@ -206,14 +225,15 @@ opportunities without expanding worker ownership.
 
 ## Status
 
-The initial commit exists and setup is complete on x86_64 Linux (oulu); macOS
-is not yet verified. The cabal package has the pure solution library, `aoc`
-dispatcher, tasty fixture runner and separate `aoc-ops` executable/internal
-library; `aoc-ops` implements `fetch` (with `--force`), `puzzle`, `submit`,
-`new`, `doc`, `bench` and `record`. No publishing remote is configured yet
-(push is unavailable until the user supplies a URL). Architecture, Toolchain
-and Code are settled rules. Never read another language's AoC repository: it
-contains solutions.
+Setup is complete on x86_64 Linux (oulu); macOS is not yet verified. The cabal
+package has the pure solution library, `aoc` dispatcher, tasty fixture runner
+and separate `aoc-ops` executable/internal library; `aoc-ops` implements
+`fetch` (with `--force`), `puzzle`, `submit`, `new`, `doc`, `bench` and
+`record`. The publishing remote `origin` is configured
+(https://github.com/anntnzrb/aoc-hs.git) and push works. Year 2016 is solved
+(all 25 days, primary solutions, canonical benchmarks in `bench/2016.csv`,
+journal `docs/journal/2016.md`). Architecture, Toolchain and Code are settled
+rules. Never read another language's AoC repository: it contains solutions.
 
 ## Critical repository rules
 
@@ -237,15 +257,17 @@ else.
 One cabal package, `aoc`, holds every year. Packaging is the `.cabal` file
 alone: no Stack, no hpack.
 
-This is the settled layout; today only `aoc.cabal` (library, `aoc`, test
-suite), `src/AoC/Registry.hs`, `src/AoC/Solution.hs`, `app/aoc/Main.hs` and
-`test/Main.hs` exist.
+The layout below is settled and in use.
 
 ```
 aoc.cabal                     library, aoc, aoc-ops, test suite
 src/AoC/                      library: every solution, all pure
   Registry.hs                 every year's table
   Solution.hs                 the solver interface
+  Assembunny.hs               assembunny instruction model, parser, stepping and verified loop acceleration
+  Grid.hs                     orthogonal lattice adjacency
+  MD5.hs                      MD5 hex digests, nibbles, repeated hashing
+  Search.hs                   breadth-first search helpers
   Y2015/
     Registry.hs               the year's table: (day, exploration) -> solver
     Day03/
@@ -256,6 +278,8 @@ app/aoc/Main.hs               aoc YEAR DAY [EXPLORATION] < input
 app/aoc-ops/                  the workflow operations
 test/                         tasty suite
   Main.hs                     fixture runner
+  AoC/<Concept>Tests.hs       shared-module test modules
+  AoC/Y2016/DayDD.hs          differential properties
   AoC/Y2015/Day03.hs          hedgehog input generator and properties
 templates/                    skeletons for `new`
 fixtures/2015/03/             p1-*.in|out, p2-*.in|out (ignored)
@@ -554,6 +578,13 @@ or HTTP/transport errors) exit 4; these are not server verdicts. For cooldown,
 the page states "You have Ns left to wait": wait that long and retry the same
 answer.
 
+When several workers run in parallel, the orchestrator builds `aoc-ops` once
+and copies it to `MAIN/.cache/bin/aoc-ops` (from `cabal list-bin exe:aoc-ops`);
+workers submit and refresh statements with that binary from MAIN, never with
+`cabal run` in MAIN, so concurrent builds do not share MAIN's dist-newstyle.
+Also note `cabal build aoc` is ambiguous (library and executable): use
+`exe:aoc`.
+
 | Operation | Command or location |
 | --- | --- |
 | Establish repository | `git init -b main`; initial commit via the commit operation; `git remote add origin URL` with the user's publishing URL. `.gitignore` excludes `.env` variants, `inputs/`, `puzzles/` and `fixtures/`; the user provisions `.env` locally, agents never handle it. |
@@ -617,5 +648,29 @@ answer.
   events; pinned to a P-core, the atom event reads `<not counted>`.
 - Codex workers can stop with a background check still running; briefs must
   say to run checks in the foreground to completion.
+- Scaffolding a whole year at once pushed the year registry past hlint's import
+  and function-length limits; `.hlint.yaml` now exempts `AoC.Y*.Registry` from
+  those two smells with a written reason. Gate scaffolds before committing
+  them.
+- Deleting or renaming a module leaves stale HIE files under `.hie/`, which
+  weeder and stan still analyse; remove them with the module.
+- stan rejects list `length` and `reverse`, wildcard-only alternatives and
+  tuples of four or more, even on bounded lists; use strict folds, explicit
+  constructors and nested pairs. weeder rejects unused derived instances.
+- relude does not export `until` or `foldM`; use `iterate`/`find` and
+  `foldlM`. The library has no direct `text` dependency; use relude's
+  conversions.
+- Clever optimisations (closed forms, bit-parallel rows, loop acceleration,
+  packed states) need committed differential properties against a literal
+  statement-derived reference in `test/AoC/Y<YEAR>/DayDD.hs`; scratch
+  comparisons do not count.
+- autommit also produced scopes `dayNN`, `y16dNN`, module names (`assembunny`,
+  `grid`), `bench`, and a multi-day `2016` commit; reword unpushed subjects
+  (scope fixes only, tree unchanged) and split multi-day commits before
+  pushing.
+- Day 25's second star is awarded on the website after all other stars; the
+  submit operation cannot perform that action.
+- Day 14 (2016) is bound by about 47 million MD5 compressions; most remaining
+  time is in the C MD5 and hex-encoding libraries.
 
 </repository_guidelines>
