@@ -1,6 +1,7 @@
 module AoC.SearchTests (tests) where
 
-import AoC.Search (breadthFirstLayers, distances, shortestDistance)
+import AoC.Search (breadthFirstLayers, distances, intDistances, shortestDistance, shortestIntDistance)
+import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Test.Tasty (TestTree, testGroup)
@@ -19,6 +20,13 @@ tests =
         , testCase "isolated origin" (breadthFirstLayers successors 5 @?= [(0, one 5)])
         , testCase "edges are directed" (shortestDistance successors (== 1) 4 @?= Nothing)
         , testCase "finite prefix of infinite graph" (shortestDistance (\n -> [n + 1]) (== (5 :: Integer)) 0 @?= Just 5)
+        , testCase "integer search agrees for every origin and target" $
+            for_ [(origin, target) | origin <- [-1 .. 5], target <- [-1 .. 5]] $ \(origin, target) ->
+                shortestIntDistance successors (== target) origin @?= shortestDistance successors (== target) origin
+        , testCase "integer distances agree including negative vertices" $
+            for_ [-1 .. 5] $ \origin ->
+                IntMap.toList (intDistances successors origin) @?= Map.toList (distances successors origin)
+        , testCase "integer search stops in an infinite graph" (shortestIntDistance (\n -> [n + 1]) (== 5) 0 @?= Just 5)
         ]
 
 successors :: Int -> [Int]
