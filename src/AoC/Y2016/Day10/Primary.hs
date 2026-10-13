@@ -1,6 +1,7 @@
 {- |
 approach: Queue chip deliveries; record matching comparisons and multiply three output chips.
-cost: O((n + d) log m) time, O(n + m) memory; three input passes, d deliveries, m destinations.
+cost: O(d * (c + m) * log d + (n + d) log m) time, O(n + d * (c + m)) memory;
+      three input passes, d deliveries, c chips, m destinations.
 trade: Persistent maps keep the simulation pure and retain only one waiting chip per bot.
 -}
 module AoC.Y2016.Day10.Primary (solver) where
@@ -10,6 +11,7 @@ import AoC.Y2016.Day10.Input (Bot, Chip (Chip), Destination (Output, ToBot), Inp
 import Data.Map.Strict qualified as Map
 import Data.Sequence (Seq (Empty, (:<|)), (|>))
 import Data.Sequence qualified as Seq
+import Data.Set qualified as Set
 
 -- Missing target comparisons use 0, so examples with other chip values remain valid.
 data Factory = Factory
@@ -32,11 +34,19 @@ initial :: [Instruction] -> Factory
 initial instructions = Factory Map.empty (Seq.fromList [(ToBot bot, chip) | Give chip bot <- instructions]) Nothing Map.empty
 
 simulate :: Map Bot (Destination, Destination) -> Factory -> Either Text Factory
-simulate rules factory = case factory.deliveries of
-    Empty -> Right factory
-    (destination, chip) :<| rest -> do
-        next <- deliver rules (destination, chip) (factory{deliveries = rest})
-        simulate rules next
+simulate rules = go Set.empty
+  where
+    -- Outputs and comparison history cannot affect future chip deliveries.
+    -- A fixed inventory has finitely many waiting/queued configurations.
+    go seen factory = case factory.deliveries of
+        Empty -> Right factory
+        (destination, chip) :<| rest
+            | Set.member configuration seen -> Left "Chip routing repeats a configuration without terminating"
+            | otherwise -> do
+                next <- deliver rules (destination, chip) (factory{deliveries = rest})
+                go (Set.insert configuration seen) next
+      where
+        configuration = (factory.waiting, factory.deliveries)
 
 deliver :: Map Bot (Destination, Destination) -> (Destination, Chip) -> Factory -> Either Text Factory
 deliver _ (Output bin, chip) factory = Right factory{outputs = Map.insertWith (\_ old -> old) bin chip factory.outputs}
