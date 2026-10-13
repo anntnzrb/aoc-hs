@@ -7,15 +7,17 @@ module AoC.Y2016.Day11.Primary (solver) where
 
 import AoC.Search (shortestDistance, shortestIntDistance)
 import AoC.Solution (Answers (Answers), Solver)
-import AoC.Y2016.Day11.Input (Floor (FloorFour, FloorOne, FloorThree, FloorTwo), Input (Input), parseInput)
+import AoC.Y2016.Day11.Input (Component (Generator, Microchip), Floor (FloorFour, FloorOne, FloorThree, FloorTwo), Input (Input), Locations (generatorFloor, microchipFloor), parseInput)
 import Data.Bits (bit, testBit, (.|.))
+import Data.Map.Strict qualified as Map
 
 data Arrangement = Arrangement Floor [(Floor, Floor)]
     deriving stock (Eq, Ord)
 
 solver :: Solver
 solver text = do
-    Input pairs <- parseInput text
+    Input elements <- parseInput text
+    let pairs = Map.elems elements & map (\locations -> (locations.generatorFloor, locations.microchipFloor))
     steps <- shortest pairs
     pure (Answers (show steps) (Just (either (const "0") show (shortest ((FloorOne, FloorOne) : (FloorOne, FloorOne) : pairs)))))
 
@@ -76,20 +78,19 @@ neighbours (Arrangement elevator pairs) =
     , safe moved
     ]
   where
-    items = [(index, generator) | (index, (g, m)) <- zip [0 ..] pairs, (generator, floorNumber) <- [(True, g), (False, m)], floorNumber == elevator]
+    items = [(index, component) | (index, (generator, microchip)) <- zip [0 ..] pairs, (component, floorNumber) <- [(Generator, generator), (Microchip, microchip)], floorNumber == elevator]
 
 cargoes :: [a] -> [[a]]
 cargoes items = map one items <> [[a, b] | (index, a) <- zip [0 :: Int ..] items, b <- drop (index + 1) items]
 
-moveCargo :: Floor -> [(Int, Bool)] -> [(Floor, Floor)] -> [(Floor, Floor)]
+moveCargo :: Floor -> [(Int, Component)] -> [(Floor, Floor)] -> [(Floor, Floor)]
 moveCargo destination cargo pairs =
-    [ (relocate index True generator, relocate index False microchip)
-    | (index, (generator, microchip)) <- zip [0 ..] pairs
+    [ foldl' move pair [component | (item, component) <- cargo, item == index]
+    | (index, pair) <- zip [0 ..] pairs
     ]
   where
-    relocate index component original
-        | (index, component) `elem` cargo = destination
-        | otherwise = original
+    move (_, microchip) Generator = (destination, microchip)
+    move (generator, _) Microchip = (generator, destination)
 
 adjacent :: Floor -> [Floor]
 adjacent = \case
