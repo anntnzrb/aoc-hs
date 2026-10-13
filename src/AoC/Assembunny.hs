@@ -17,7 +17,7 @@ module AoC.Assembunny (
     Value (Literal, RegisterValue),
     Instruction (Copy, Increment, Decrement, Jump, Toggle, Output),
     Dialect (Basic, SelfModifying, Clock),
-    Machine (Machine, counter, registers, program),
+    Machine (counter, registers, program),
     parseProgram,
     initialise,
     current,
