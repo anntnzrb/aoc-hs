@@ -1,7 +1,11 @@
 -- | The input grammar; replace the placeholder with statement-derived types.
 module {{DAYMODULE}}.Input (Input (Input), parseInput) where
 
-newtype Input = Input Text
+-- | Unparsed puzzle text; replace with the statement's domain model.
+newtype Input
+    = -- | Raw puzzle text, pending a statement-derived parser.
+      Input Text
 
+-- | Wrap raw text without validation; replace with the statement's grammar.
 parseInput :: Text -> Either Text Input
-parseInput = Right . Input
+parseInput = Input >>> Right

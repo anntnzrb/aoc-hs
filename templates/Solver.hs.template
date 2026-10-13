@@ -8,6 +8,7 @@ module {{DAYMODULE}}.{{NAME}} (solver) where
 import AoC.Solution (Solver, answers)
 import {{DAYMODULE}}.Input (Input (Input), parseInput)
 
+-- | Parse the input and return 0 for both unfinished parts.
 solver :: Solver
 solver text = do
     Input _ <- parseInput text

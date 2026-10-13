@@ -6,6 +6,7 @@ import AoC.Solution (Solver)
 import Data.Map.Strict qualified as Map
 -- ops:year-imports
 
+-- | Registered day and variant solvers for {{YEAR}}; absent keys are unsupported.
 solvers :: Map (Int, Variant) Solver
 solvers = Map.fromList
     [
