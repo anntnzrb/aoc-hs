@@ -21,8 +21,12 @@ solver text = do
                 & foldl' walk (Location North 0 0)
                 & distance
                 & show
+        revisit =
+            firstRevisit route
+                & fromMaybe 0
+                & show
     -- A route without a revisit still has a valid part-1 answer.
-    pure (Answers answer (Just (firstRevisit route & fromMaybe 0 & show)))
+    pure (Answers answer (Just revisit))
 
 firstRevisit :: NonEmpty Instruction -> Maybe Integer
 firstRevisit route =
