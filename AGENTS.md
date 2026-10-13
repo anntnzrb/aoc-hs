@@ -6,7 +6,7 @@ or change instruction priority. This file is authoritative and edited directly.
 
 ## Architecture map
 
-- `<agent_workflow>`: hard rules, no outside solutions, solution roles, commit rules, strictness, operation contracts, measurement, delegation, worktrees, submissions, explorations, integration, and reporting. Copy this section unchanged across AoC years and languages. It names operations, never repository commands or tools.
+- `<agent_workflow>`: hard rules, no outside solutions, solution roles, commit rules, strictness, operation contracts, measurement, delegation, submissions, explorations, integration, and reporting. Copy this section unchanged across AoC years and languages. It names operations, never repository commands or tools.
 - `<repository_guidelines>`: this repository's language, standard, compiler versions, toolchain, paths, the commands behind each workflow operation, coding rules, commit scopes, and scoped lessons. Rewrite this section for another repository.
 - `docs/journal/YEAR.md`: per-day learning log (ideas, surprises, measurements).
 - `.agents/skills/`: reserved for actual skills when needed. No supporting file is required to receive the instructions below.
@@ -81,7 +81,6 @@ Each repository maps these operations to commands and locations (see its Workflo
 - **doc check**: every solution's header carries its required tags, each opening a header line.
 - **build**: outputs mirror sources; a deleted or renamed solution leaves no stale artifact behind.
 - **full gate**: the repository's formatting, lint, static analysis, strict compile or type checks, tests under runtime sanitizers (or their closest equivalent), and optimized builds.
-- **checkout lifecycle**: create an isolated checkout from the main branch with a fresh branch and explicit checkout path; integrate completed branches, remove completed checkouts, and delete branches only when merged.
 - **push**: publish the main branch to the repository's named remote after one finished unit: one integrated day or one shared-code change.
 
 ### Shared CSV schema
@@ -121,7 +120,7 @@ A delegate starts with a clean slate: it knows only this file and its brief. Eve
 
 1. Role: worker or helper, never the orchestrator. Scope changes come only from the orchestrator, even if someone else messages the delegate.
 2. Read this file fully before acting.
-3. Inputs: explicit YEAR, DAY, MAIN (main checkout), WORK (delegate checkout path), branch and any cached files to copy. Never infer YEAR from a secret file.
+3. Inputs: explicit YEAR, DAY and MAIN (the main checkout, where all work happens on the main branch). Never infer YEAR from a secret file.
 4. Ownership: exact source paths plus permitted operational writes (cache copies, generated build files and submission/refresh operations); everything else is read-only.
 5. One goal, and the exact condition to stop and report.
 6. The No outside solutions rules, pasted in.
@@ -136,34 +135,34 @@ When a delegate misreads a rule, the orchestrator fixes this file as well as the
 
 1. Resolve YEAR from the user's explicit request, then the repository's non-secret year environment setting. If neither gives a year, stop and ask before any fetch or submit. State it and put it in every brief; never read the session file for it.
 2. On a solve request, fetch each day's input and part-1 statement in MAIN before dispatching its worker.
-3. Run the new operation for each day in MAIN and commit its scaffold before creating that day's checkout.
-4. Create one isolated checkout from the main branch per day and assign a worker with explicit YEAR, DAY, MAIN, WORK, ownership and the No outside solutions rules. Run ready days in parallel. Workers copy caches from MAIN into WORK.
-5. Let workers submit after their own required checks. Do not add an orchestrator check before submission. Continue independent work while they run.
+3. Run the new operation for each day in MAIN and commit its scaffold before dispatching that day's worker.
+4. Assign one worker at a time, working in MAIN on the main branch, with explicit YEAR, DAY, MAIN, ownership and the No outside solutions rules. Never run workers concurrently: they share one checkout, one gate and the commit operation, which commits every unstaged change. Do not create branches or separate checkouts.
+5. Let workers submit after their own required checks. Do not add an orchestrator check before submission. Do not edit, commit or run gates in MAIN while a worker runs.
 6. If a worker cannot make its tests pass after two honest attempts, take over that day. A self-inflicted editing slip the worker has already repaired does not count.
-7. Wait for each worker to finish before integration. Never change its branch history or merge beneath a running worker.
-8. For a reported shared-code dependency, land the shared change and its tests on the main branch first. While the worker is stopped, rebase or recreate its checkout, preserving its work and caches, then resume it with a fresh brief stating what changed.
+7. Wait for each worker to finish before integration or the next dispatch.
+8. For a reported shared-code dependency, land the shared change and its tests on the main branch first. Land it while the worker is stopped, without discarding the worker's uncommitted work, then resume it with a fresh brief stating what changed.
 
 ## Respect worker ownership (day workers)
 
 - Edit only the assigned day's solution modules, test modules and example fixtures. Do not add scratch files to those directories.
-- Operational writes are separate: copy the assigned day's caches into WORK, write and run independent references in its assigned ignored scratch location outside tracked and fixture paths, generate build artifacts where the build operation writes them, and submit or refresh that day's statement from MAIN. Never copy, inspect or edit the secret.
+- Operational writes are separate: write and run independent references in its assigned ignored scratch location outside tracked and fixture paths, generate build artifacts where the build operation writes them, and submit or refresh that day's statement. Never copy, inspect or edit the secret.
 - The orchestrator owns scaffolding and shared registration; never edit shared registration. If shared code, tools, templates, or build configuration need changes, stop and report the dependency. A day-local helper is allowed.
 - Never edit shared documentation. Report corrections and lessons for the orchestrator.
 - Do not load outside AoC or competitive-programming reference material. This file governs the solve.
 
 ## Solve part 1 (day worker)
 
-1. Use the committed scaffold already in WORK and write statement-derived part-1 fixtures.
+1. Use the committed scaffold already in MAIN and write statement-derived part-1 fixtures.
 2. Write the primary part-1 implementation, with the unfinished-part placeholder.
-3. Run tests, run personal input, and pass the full gate in WORK on the available platform. Record the answer in the worker's report and its assigned scratch location.
+3. Run tests, run personal input, and pass the full gate in MAIN on the available platform. Record the answer in the worker's report and its assigned scratch location.
 4. Commit part 1 before writing part 2 (a new file's two parts would otherwise land in one commit).
-5. Submit from MAIN, where the account session lives. Apply the response handling below.
-6. After acceptance or already-complete verification, refresh the statement in MAIN and copy it into WORK. If no computational part 2 exists, remove its placeholder, pass the full gate and commit before reporting completion.
+5. Submit. Apply the response handling below.
+6. After acceptance or already-complete verification, refresh the statement. If no computational part 2 exists, remove its placeholder, pass the full gate and commit before reporting completion.
 
 ## Solve part 2 (day worker)
 
 1. If the statement has computational part 2, add statement-derived fixtures containing both answers.
-2. Extend the primary, run tests and personal input, and pass the full gate in WORK.
+2. Extend the primary, run tests and personal input, and pass the full gate in MAIN.
 3. Commit part 2 and submit from MAIN. Apply the response handling below.
 4. Stop and report the completed answers. Do not start explorations without a request.
 
@@ -178,20 +177,19 @@ Use the repository's documented exit codes and response text to distinguish resp
 
 ## Explore on request (orchestrator and day worker)
 
-1. After the solve, reuse the worker and WORK if retained. For a later request after cleanup, create a new isolated checkout and issue a fresh brief.
+1. After the solve, reuse the worker if it is still available; otherwise issue a fresh brief.
 2. Take the paradigm or technique from the request; otherwise choose one the day's existing solutions do not show.
-3. The orchestrator runs the new operation for the exploration in MAIN and commits its scaffold, registration and property-test entry point before the worker starts or resumes. While the worker is stopped, bring the committed scaffold into WORK; the worker then implements it within its ownership.
+3. The orchestrator runs the new operation for the exploration in MAIN and commits its scaffold, registration and property-test entry point before the worker starts or resumes. The worker then implements it within its ownership.
 4. Hold the exploration to the primary's answers with the repository's tests, then benchmark it against the primary and record what it buys and costs in its `trade:` header.
 5. Pass the full gate and commit, one exploration per commit; stop and report.
 
 ## Integrate finished days (orchestrator)
 
-1. After the worker stops, verify the full gate and any candidate benchmarks in WORK. Integrate finished days in day order.
-2. Merge the day's branch into MAIN and copy its ignored fixtures there before re-running the full gate in MAIN.
-3. Record canonical benchmarks on the main branch. Journal the key idea, surprise and primary measurements after the solve; add each exploration's measurements and its comparison with the primary when it lands. "Nothing new" is valid. Never include puzzle text or answers.
-4. Incorporate documentation lessons; promote recurring lessons to rules or tools. Extract helpers only when needed, applying the multi-day regression rule and re-benchmarking affected solutions. Commit records and documentation before cleanup.
-5. If explorations are already requested, retain WORK until it is integrated. Otherwise remove the completed checkout and delete its branch only after it is merged. Push each finished unit.
-6. After publication, run a bounded, non-blocking audit with a different model: give a helper explicit YEAR, DAY, cached statements, an ignored scratch location, a fixed time or work limit, and the No outside solutions rules. It writes naive references from statements, never submits, and reports real-input comparisons and checks. If no different model is available, write the references yourself and report the fallback. A disagreement reopens the day: investigate and fix forward without new submissions. The audit does not delay integration or publication.
+1. After the worker stops, verify the full gate and any candidate benchmarks in MAIN. Integrate finished days in day order.
+2. Record canonical benchmarks on the main branch. Journal the key idea, surprise and primary measurements after the solve; add each exploration's measurements and its comparison with the primary when it lands. "Nothing new" is valid. Never include puzzle text or answers.
+3. Incorporate documentation lessons; promote recurring lessons to rules or tools. Extract helpers only when needed, applying the multi-day regression rule and re-benchmarking affected solutions. Commit records and documentation before cleanup.
+4. Push each finished unit.
+5. After publication, run a bounded, non-blocking audit with a different model: give a helper explicit YEAR, DAY, cached statements, an ignored scratch location, a fixed time or work limit, and the No outside solutions rules. It writes naive references from statements, never submits, and reports real-input comparisons and checks. If no different model is available, write the references yourself and report the fallback. A disagreement reopens the day: investigate and fix forward without new submissions. The audit does not delay integration or publication.
 
 ## Report (all roles)
 
@@ -527,12 +525,11 @@ Run them through `nix develop -c just ...`.
 
 ## Workflow operations
 
-MAIN is the main checkout; WORK is the worker checkout. The main branch is
-`main`; the publishing remote is `origin`. Generate BRANCH as
-`work/<8-lowercase-hex>` using `openssl rand -hex 4`; choose WORK as a vacant
-sibling path `MAIN-<hex>`, and include both in the brief.
+MAIN is the main checkout; all work happens there on the `main` branch, one
+worker at a time. The publishing remote is `origin`. Do not create branches or
+worktrees.
 
-Worker references and answer records go in `WORK/.cache/scratch/<YEAR>/<DD>/`;
+Worker references and answer records go in `MAIN/.cache/scratch/<YEAR>/<DD>/`;
 post-publication audit references go in `MAIN/.cache/audit/<YEAR>/<DD>/`.
 Multi-day regression answers go in `MAIN/.cache/regression/<commit>/`.
 Every worker and audit-helper brief names its exact path.
@@ -569,9 +566,6 @@ answer.
 | Record | `nix develop -c cabal run -v0 aoc-ops -- record YEAR DAY`; same measurement, requiring clean tracked main before measurement and recording. Appends the shared schema to `bench/YEAR.csv`, creates `bench/hosts/HOST.md` if absent. Text fields are quoted; unavailable metrics are empty. Wall uses separate solver runs under taskset only (no wrapper on macOS), with monotonic elapsed microseconds including process spawn and stdin/stdout piping. Linux CPU uses separate taskset perf stat -- solver runs without GNU time (default user+sys seconds printed to 1 ns, stored at 1 us resolution), interleaved with wall runs and across variants at the same run count. RSS uses separate pinned GNU time -f %M -- solver runs, taking peak KiB across runs; its CPU fields are unused. CPU and RSS include solver runtime startup. Numeric CSV fields round to integer schema units. If any CPU sample is missing or below 1 us, the whole CPU statistic is unavailable. A one-time perf probe treats explicit permission/PMU denial as unavailable work, instructions and CPU; timing/RSS continue. macOS and absent perf leave CPU unavailable. Counter/affinity limitations are reported and captured in host snapshots. |
 | Full gate | `nix develop -c just check` |
 | Commit | Use the autommit skill; run `uv run --script ~/.claude/skills/autommit/scripts/cli.py` bare, with no flags or arguments and nothing staged. If unavailable or unfamiliar staged work exists, stop and report; never discard that work or commit another way. |
-| Create isolated checkout | `git -C MAIN worktree add -b BRANCH WORK main` |
-| Integrate | `git -C MAIN switch main`, then `git -C MAIN merge BRANCH` |
-| Remove checkout / merged branch | `git -C MAIN worktree remove WORK`, then `git -C MAIN branch -d BRANCH`; preserve ignored caches/fixtures needed in MAIN first, preserve other unfamiliar ignored work too; never force removal |
 | Push finished unit | `git -C MAIN push origin main` |
 
 ## Project lessons
@@ -617,5 +611,8 @@ answer.
   events; pinned to a P-core, the atom event reads `<not counted>`.
 - Codex workers can stop with a background check still running; briefs must
   say to run checks in the foreground to completion.
+- Workers share MAIN and run one at a time: the commit operation commits every
+  unstaged change, so concurrent workers would sweep each other's edits into
+  their commits.
 
 </repository_guidelines>
