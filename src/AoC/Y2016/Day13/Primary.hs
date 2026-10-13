@@ -5,6 +5,8 @@ trade: Set frontiers deduplicate paths; lazy layers stop each search on demand.
 -}
 module AoC.Y2016.Day13.Primary (solver) where
 
+import AoC.Grid (orthogonal)
+import AoC.Search (breadthFirstLayers)
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day13.Input (Input (Input), parseInput)
 import Data.Bits (popCount)
@@ -24,17 +26,12 @@ shortest favorite target
     | otherwise = layers favorite & find (Set.member target . snd) & maybe 0 fst
 
 layers :: Natural -> [(Int, Set Position)]
-layers favorite = unfoldr advance (0, start, start)
-  where
-    start = Set.fromList [(1, 1) | isOpen favorite (1, 1)]
-    advance (distance, frontier, visited)
-        | Set.null frontier = Nothing
-        | otherwise = Just ((distance, frontier), (distance + 1, next, Set.union visited next))
-      where
-        next = frontier & Set.toList & concatMap (filter (isOpen favorite) . neighbors) & Set.fromList & (`Set.difference` visited)
+layers favorite
+    | isOpen favorite (1, 1) = breadthFirstLayers (neighbors >>> filter (isOpen favorite)) (1, 1)
+    | otherwise = []
 
 neighbors :: Position -> [Position]
-neighbors (x, y) = [(a, b) | (a, b) <- [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)], a >= 0, b >= 0]
+neighbors position = [(x, y) | (x, y) <- orthogonal position, x >= 0, y >= 0]
 
 isOpen :: Natural -> Position -> Bool
 isOpen favorite (x, y) = even (popCount (x * x + 3 * x + 2 * x * y + y + y * y + toInteger favorite))
