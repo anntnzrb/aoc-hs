@@ -144,7 +144,8 @@ divideLoop machine = do
     let dividendValue = readValue (RegisterValue dividend) machine
     guard (dividendValue >= 0)
     let (result, remainder) = dividendValue `divMod` divisor
-    pure (complete machine 9 [(quotient, result), (dividend, 0), (temporary, divisor - remainder)])
+    -- A zero dividend exits before any decrement, preserving its absence.
+    pure (complete machine 9 ([(quotient, result), (temporary, divisor - remainder)] <> [(dividend, 0) | dividendValue > 0]))
 
 -- Match the live instructions each time: a previous toggle can change any loop.
 multiplyLoop :: Machine -> Maybe Machine

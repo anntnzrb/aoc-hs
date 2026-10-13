@@ -14,14 +14,24 @@ import AoC.Assembunny (
     step,
  )
 import Data.Map.Strict qualified as Map
+import Hedgehog (Gen, Property, PropertyT, cover, forAll, property, withTests, (===))
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
+import Test.Tasty.Hedgehog (testProperty)
 
 tests :: TestTree
 tests = testGroup "assembunny" [parsing, execution, toggling, acceleration]
 
 acceleration :: TestTree
-acceleration = testGroup "loop acceleration" [addition, multiplication, division, refusal]
+acceleration = testGroup "loop acceleration" [addition, multiplication, division, sparseDivision, refusal, testProperty "bounded differential execution" differential]
+
+sparseDivision :: TestTree
+sparseDivision = testCase "zero division preserves an absent dividend register" $ do
+    let instructions = [Copy (Literal 0) (RegisterValue A), Copy (Literal 2) (RegisterValue C), Jump (RegisterValue B) (Literal 2), Jump (Literal 1) (Literal 6), Decrement (RegisterValue B), Decrement (RegisterValue C), Jump (RegisterValue C) (Literal (-4)), Increment (RegisterValue A), Jump (Literal 1) (Literal (-7))]
+        machine = initialise instructions []
+    acceleratedStep machine @?= direct 4 machine
 
 division :: TestTree
 division = testCase "countdown division matches direct execution including the final partial block" $ do
