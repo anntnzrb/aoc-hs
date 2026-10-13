@@ -9,11 +9,10 @@ matching rule direct, at the cost of scanning a bounded window per triplet.
 -}
 module AoC.Y2016.Day14.Primary (solver) where
 
+import AoC.MD5 (md5Hex)
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day14.Input (Input (Input), parseInput)
-import Crypto.Hash.MD5 qualified as MD5
 import Data.ByteString qualified as BS
-import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BSC
 
 solver :: Solver
@@ -34,7 +33,7 @@ keyIndex rounds salt =
 hashSummary :: Int -> ByteString -> (Maybe Char, [Char])
 hashSummary rounds bytes = (triplet, quintuples)
   where
-    runs = foldl' (\digest _ -> digest & MD5.hash & Base16.encode) bytes [1 .. rounds] & BSC.group
+    runs = foldl' (\digest _ -> md5Hex digest) bytes [1 .. rounds] & BSC.group
     triplet = find ((>= 3) . BS.length) runs >>= fmap fst . BSC.uncons
     quintuples = [digit | run <- runs, BS.length run >= 5, Just (digit, _) <- [BSC.uncons run]]
 
