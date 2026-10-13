@@ -2,6 +2,7 @@
 module Main (main) where
 
 import AoC.AssembunnyTests qualified
+import AoC.GridTests qualified
 import AoC.MD5Tests qualified
 import AoC.SearchTests qualified
 import OpsTests qualified
@@ -28,6 +29,7 @@ main = do
             , AoC.AssembunnyTests.tests
             , AoC.MD5Tests.tests
             , AoC.SearchTests.tests
+            , AoC.GridTests.tests
             -- ops:test-entries
             ]
 
