@@ -1,6 +1,7 @@
 -- | Plan all scaffold writes before applying them. Existing solutions are refused.
-module Ops.Scaffold (scaffold, dayText, dayModule, preflightDirectories) where
+module Ops.Scaffold (scaffold, dayText, dayModule, moduleName, preflightDirectories) where
 
+import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.List (lookup)
 import Data.Text qualified as T
 import Ops.Logic (refuseExisting)
@@ -11,6 +12,18 @@ dayText day = T.justifyRight 2 '0' (show day)
 
 dayModule :: Int -> Int -> Text
 dayModule year day = "AoC.Y" <> show year <> ".Day" <> dayText day
+
+-- | Require an ASCII CamelCase exploration module name, excluding Input and Primary.
+moduleName :: String -> Either String Text
+moduleName name = case name of
+    first' : rest
+        | isAsciiUpper first' && all allowed rest && T.toCaseFold (toText name) `notElem` ["primary", "input"] -> Right (toText name)
+        | otherwise -> Left invalid
+    [] -> Left invalid
+  where
+    invalid :: String
+    invalid = "exploration must be a CamelCase module name other than Input or Primary"
+    allowed c = isAsciiUpper c || isAsciiLower c || isDigit c
 
 -- | Snapshots include templates and shared registration files, never secrets.
 scaffold :: (Int, Int) -> Maybe Text -> [(FilePath, Text)] -> Either Text [(FilePath, Text)]
@@ -47,7 +60,7 @@ registration (year, day) exploration files = do
     yearSource <- lookup yearPath files & maybe (template "Year") Right
     when (isJust exploration && variant `T.isInfixOf` yearSource && ("(" <> show day <> ", " <> variant) `T.isInfixOf` yearSource) (Left "exploration variant already registered")
     let importsReady = bool yearSource (T.replace "Variant (Primary)" "Variant (Primary, Exploration)" yearSource) (isJust exploration)
-    imported <- insertAt "-- ops:year-imports" ("import " <> moduleName <> " qualified as " <> alias) importsReady
+    imported <- insertAt "-- ops:year-imports" ("import " <> qualifiedModule <> " qualified as " <> alias) importsReady
     table <- insertAt "    -- ops:year-entries" (prefix yearSource <> "((" <> show day <> ", " <> variant <> "), " <> alias <> ".solver)") imported
     root <- rootRegistry year files
     properties <- maybe (Right []) (propertyRegistration (year, day) files) exploration
@@ -56,10 +69,10 @@ registration (year, day) exploration files = do
   where
     yearPath = "src/AoC/Y" <> show year <> "/Registry.hs"
     name = fromMaybe "Primary" exploration
-    moduleName = dayModule year day <> "." <> name
+    qualifiedModule = dayModule year day <> "." <> name
     alias = "Day" <> dayText day <> name
     variant = maybe "Primary" (\n -> "Exploration \"" <> T.toLower n <> "\"") exploration
-    modules = [moduleName] <> [dayModule year day <> ".Input" | isNothing exploration] <> ["AoC.Y" <> show year <> ".Registry" | isNothing (lookup yearPath files)] <> ["AoC.Registry.Types" | not (null types)]
+    modules = [qualifiedModule] <> [dayModule year day <> ".Input" | isNothing exploration] <> ["AoC.Y" <> show year <> ".Registry" | isNothing (lookup yearPath files)] <> ["AoC.Registry.Types" | not (null types)]
     types = [("src/AoC/Registry/Types.hs", registryTypes) | isNothing (lookup "src/AoC/Registry/Types.hs" files)]
     template name' = lookup ("templates/" <> name' <> ".hs.template") files & maybe (Left "missing registration template") (Right . substitute (year, day) name)
 

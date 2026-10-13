@@ -1,7 +1,7 @@
 -- | CLI operations. Every external action runs through Runtime.
 module Ops.Command (Command, commandParser, moduleName, parseNumber, execute) where
 
-import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
+import AoC.Parse (boundedSignedDecimalWithin, parseText)
 import Data.Text qualified as T
 import Effectful (Eff, (:>))
 import Ops.Benchmark (benchmark)
@@ -9,7 +9,7 @@ import Ops.Haddock (checkHaddock)
 import Ops.Logic (Verdict (AlreadyComplete, Cooldown, RightAnswer, UnknownResponse, WrongAnswer), articleText, classify, docViolations, statement, validAnswer)
 import Ops.Process (process)
 import Ops.Runtime (Runtime, directories, exists, formatFiles, http, isDirectory, makeDirectory, output, readText, writeText)
-import Ops.Scaffold (dayText, preflightDirectories, scaffold)
+import Ops.Scaffold (dayText, moduleName, preflightDirectories, scaffold)
 import Options.Applicative (Parser, ParserInfo, argument, command, eitherReader, hsubparser, info, long, metavar, str, switch)
 import System.FilePath (dropExtension, splitDirectories, takeDirectory, takeExtension, takeFileName, (</>))
 
@@ -38,22 +38,11 @@ number label minimum' maximum' = argument (eitherReader (parseNumber label (mini
 
 -- | Parse without machine overflow, then enforce inclusive argument bounds.
 parseNumber :: String -> (Int, Int) -> String -> Either String Int
-parseNumber label (minimum', maximum') text = case readMaybe @Integer text of
-    Just value
-        | toInteger minimum' <= value && value <= toInteger maximum' -> Right (fromInteger value)
-        | otherwise -> Left (label <> " out of range")
-    Nothing -> Left (label <> " must be an integer")
-
-moduleName :: String -> Either String Text
-moduleName name = case name of
-    first' : rest
-        | isAsciiUpper first' && all allowed rest && T.toCaseFold (toText name) `notElem` ["primary", "input"] -> Right (toText name)
-        | otherwise -> Left invalid
-    [] -> Left invalid
+parseNumber label bounds text = parseText (boundedSignedDecimalWithin bounds) (toText text) & first labelled
   where
-    invalid :: String
-    invalid = "exploration must be a CamelCase module name other than Input or Primary"
-    allowed c = isAsciiUpper c || isAsciiLower c || isDigit c
+    labelled err
+        | "out of range\n" `T.isSuffixOf` err = label <> " out of range"
+        | otherwise = label <> ": " <> toString err
 
 execute :: (Runtime :> es) => Command -> Eff es Int
 execute = \case

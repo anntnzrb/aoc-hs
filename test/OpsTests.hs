@@ -13,19 +13,32 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 
 tests :: TestTree
-tests = testGroup "operations" [protocolTests, documentationTests, haddockTests, scaffoldTests, registrationTests, measurementTests, cpuMeasurementTests]
+tests = testGroup "operations" [numericArgumentTests, protocolTests, documentationTests, haddockTests, scaffoldTests, registrationTests, measurementTests, cpuMeasurementTests]
 
-protocolTests :: TestTree
-protocolTests =
+numericArgumentTests :: TestTree
+numericArgumentTests =
     testGroup
-        "protocol"
+        "numeric arguments"
         [ testCase "numeric arguments reject overflow before conversion" $ do
             map (isLeft . parseNumber "YEAR" (2015, 9999)) ["18446744073709553631", "-18446744073709549601"] @?= [True, True]
             isLeft (parseNumber "DAY" (1, 25) "18446744073709551617") @?= True
             isLeft (parseNumber "PART" (1, 2) "18446744073709551617") @?= True
             traverse (parseNumber "YEAR" (2015, 9999)) ["2015", "9999"] @?= Right [2015, 9999]
             map (isLeft . parseNumber "PART" (1, 2)) ["0", "3", "oops"] @?= replicate 3 True
-        , testCase "answer tokens" $ do
+        , testCase "numeric arguments preserve labelled errors and inclusive bounds" $ do
+            parseNumber "YEAR" (2015, 9999) "2014" @?= Left "YEAR out of range"
+            parseNumber "DAY" (1, 25) "26" @?= Left "DAY out of range"
+            traverse (parseNumber "DAY" (1, 25)) ["1", "25"] @?= Right [1, 25]
+            traverse (parseNumber "PART" (1, 2)) ["1", "2"] @?= Right [1, 2]
+            for_ ["oops", "18446744073709553631", "-18446744073709549601"] $ \value ->
+                either (T.isPrefixOf "YEAR: " . toText) (const False) (parseNumber "YEAR" (2015, 9999) value) @?= True
+        ]
+
+protocolTests :: TestTree
+protocolTests =
+    testGroup
+        "protocol"
+        [ testCase "answer tokens" $ do
             map validAnswer ["123", "abc-Z,9", "0"] @?= [True, True, True]
             map validAnswer ["", "bad answer", "a\nb", "é", "a&b"] @?= replicate 5 False
         , testCase "submission classifications" $
