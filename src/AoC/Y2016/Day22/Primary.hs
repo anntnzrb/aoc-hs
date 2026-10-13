@@ -80,9 +80,8 @@ swapModel nodes = do
         [node] -> Just node.position
         [] -> Nothing
         _ : _ : _ -> Nothing
-    (lowCapacity, highCapacity) <- bounds (map (.capacity) mobile)
+    (_, highCapacity) <- bounds (map (.capacity) mobile)
     (lowPayload, _) <- bounds [node.used | node <- mobile, node.used > 0]
-    guard (all ((<= lowCapacity) . (.used)) mobile)
     -- No two payloads can merge; walls can neither receive nor send data.
     guard (unmergeable highCapacity mobile)
     guard (all (\wall -> wall.used > highCapacity && wall.available < lowPayload) walls)
