@@ -31,7 +31,7 @@ packedShortest initial@(Arrangement _ pairs)
     | 4 * space > toInteger (maxBound :: Int) = shortestDistance neighbours complete initial
     | otherwise = shortestIntDistance successors ((== base - 1) . (`mod` base)) (packArrangement initial)
   where
-    count = length pairs
+    count = foldl' (\total _ -> total + 1) 0 pairs
     space = 16 ^ count :: Integer
     base = fromInteger space
     successors = unpackArrangement count base >>> neighbours >>> map packArrangement
