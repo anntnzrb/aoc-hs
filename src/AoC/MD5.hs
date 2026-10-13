@@ -21,7 +21,6 @@ Works on any bytes, including empty input; no textual encoding is applied.
 hexNibbles :: ByteString -> [Word8]
 hexNibbles = BS.unpack >>> concatMap (\byte -> [byte `shiftR` 4, byte .&. 15])
 
+-- | Strictly hash hexadecimal bytes each round; nonpositive counts are identity.
 md5HexRepeated :: Int -> ByteString -> ByteString
-md5HexRepeated rounds bytes
-    | rounds <= 0 = bytes
-    | otherwise = md5HexRepeated (rounds - 1) $! md5Hex bytes
+md5HexRepeated rounds bytes = foldl' (\digest _ -> md5Hex digest) bytes [1 .. rounds]
