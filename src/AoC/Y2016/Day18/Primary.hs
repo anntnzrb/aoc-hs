@@ -1,12 +1,13 @@
 {- |
-approach: Evolve rows with safe walls; the four trap rules mean unequal neighbours.
-cost: O(rows * width) time, O(width) live memory; one input parse pass.
-trade: Streaming 40 and 400000 rows with lists expresses the local rule directly without storing the room.
+approach: Encode traps as bits; unequal neighbours are the XOR of left and right shifts.
+cost: O(rows * ceil(width / word size)) bit operations, O(width) live bits; one parsing pass, two seed passes per answer.
+trade: Integer shifts and population counts evolve arbitrary-width rows without per-tile allocation; a mask keeps both walls safe.
 -}
 module AoC.Y2016.Day18.Primary (solver) where
 
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day18.Input (Input (Input), Tile (Safe, Trap), parseInput)
+import Data.Bits (bit, popCount, shiftL, shiftR, (.&.), (.|.))
 
 solver :: Solver
 solver text = do
@@ -14,19 +15,18 @@ solver text = do
     pure (Answers (show (safeTiles 40 (toList row))) (Just (show (safeTiles 400000 (toList row)))))
 
 safeTiles :: Int -> [Tile] -> Int
-safeTiles rows = iterate nextRow >>> take rows >>> foldl' countSafe 0
+safeTiles rows row = iterate nextRow encoded & take rows & foldl' countSafe 0
   where
-    countSafe :: Int -> [Tile] -> Int
-    countSafe total row = foldl' countTile total row
+    width = foldl' (\total _ -> total + 1) 0 row
+    mask = bit width - 1
+    encoded = foldl' (\bits tile -> shiftL bits 1 .|. encode tile) 0 row
 
-    countTile :: Int -> Tile -> Int
-    countTile total Safe = total + 1
-    countTile total Trap = total
+    countSafe :: Int -> Integer -> Int
+    countSafe total traps = total + width - popCount traps
 
-nextRow :: [Tile] -> [Tile]
-nextRow row = zipWith tile (Safe : row) (drop 1 row <> [Safe])
-  where
-    tile :: Tile -> Tile -> Tile
-    tile left right
-        | left == right = Safe
-        | otherwise = Trap
+    nextRow :: Integer -> Integer
+    nextRow traps = (shiftL traps 1 `xor` shiftR traps 1) .&. mask
+
+encode :: Tile -> Integer
+encode Safe = 0
+encode Trap = 1

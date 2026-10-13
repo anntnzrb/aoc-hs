@@ -2,16 +2,18 @@
 approach: Count viable pairs; BFS the vacant and goal positions when checked
 capacity bounds prove swaps are the only legal moves, otherwise BFS full loads.
 cost: O(n^2 log n) time and O(n^2) memory for swaps; full search exponential
-in node count. One parsing pass, then bounded node and search traversals.
-trade: A proved state reduction handles large grids without guessing a route;
+in node count. One parsing pass, one cached adjacency pass, then search traversals.
+trade: Checked swap states use compact integer keys and cached adjacency;
+the proved reduction handles large grids without guessing a route;
 unreachable or missing goal data uses the documented part-2 placeholder 0.
 -}
 module AoC.Y2016.Day22.Primary (solver) where
 
 import AoC.Grid (adjacent, orthogonal)
-import AoC.Search (shortestDistance)
+import AoC.Search (shortestDistance, shortestIntDistance)
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day22.Input (Node (available, capacity, position, used), parseInput)
+import Data.IntMap.Strict qualified as IntMap
 import Data.List (partition)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
@@ -45,12 +47,28 @@ fewestMoves nodes = do
     case swapModel nodes of
         Just (vacant, walkable)
             | Set.member goal walkable ->
-                shortestDistance (swapMoves walkable) ((== (0, 0)) . snd) (vacant, goal)
+                compactSearch walkable vacant goal
             | otherwise -> fullSearch
         Nothing -> fullSearch
   where
     capacities = Map.fromList [(node.position, node.capacity) | node <- nodes]
     loads = Map.fromList [(node.position, node.used) | node <- nodes]
+
+compactSearch :: Set Position -> Position -> Position -> Maybe Int
+compactSearch walkable vacant goal
+    | toInteger count * toInteger count > toInteger (maxBound :: Int) = shortestDistance (swapMoves walkable) ((== (0, 0)) . snd) (vacant, goal)
+    | otherwise = do
+        emptyIndex <- Map.lookup vacant indices
+        goalIndex <- Map.lookup goal indices
+        target <- Map.lookup (0, 0) indices
+        shortestIntDistance moves ((== target) . (`mod` count)) (emptyIndex * count + goalIndex)
+  where
+    count = Set.size walkable
+    indices = Map.fromList (zip (Set.toList walkable) [0 ..])
+    edges = IntMap.fromList [(index, mapMaybe (`Map.lookup` indices) (orthogonal position)) | (position, index) <- Map.toList indices]
+    moves encoded = [source * count + if source == goalIndex then emptyIndex else goalIndex | source <- IntMap.findWithDefault [] emptyIndex edges]
+      where
+        (emptyIndex, goalIndex) = encoded `divMod` count
 
 swapModel :: [Node] -> Maybe (Position, Set Position)
 swapModel nodes = do

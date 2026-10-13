@@ -1,7 +1,7 @@
 {- |
 approach: Breadth-first distances, subset route DP, and optional return to start.
-cost: O(k V log V + 2^k k^3) time, O(V + 2^k k) memory; four parsing passes, k grid searches.
-trade: Compresses corridor walks into exact distances; stores subset endpoints.
+cost: O(k V log V + 2^k k^3) time, O(V + 2^k k) memory; four parsing passes, one adjacency pass and k integer graph searches.
+trade: Cache corridor adjacency once and use dense integer vertex keys for every exact distance search; subset endpoints retain the same route DP.
 -}
 module AoC.Y2016.Day24.Primary (solver) where
 
@@ -10,6 +10,7 @@ import AoC.Search qualified as Search
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day24.Input (Input (locations, passages), parseInput)
 import Data.Bits (setBit, testBit)
+import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 
@@ -27,7 +28,14 @@ solver text = do
     pure (Answers (show answer) (Just (show returning)))
 
 locationDistances :: Input -> Distances
-locationDistances input = Map.fromList [(source, Map.fromList [(target, distance) | (target, position) <- Map.toList input.locations, Just distance <- [Map.lookup position reached]]) | (source, origin) <- Map.toList input.locations, let reached = Search.distances (orthogonal >>> filter (`Set.member` input.passages)) origin]
+locationDistances input = Map.map fromLocation numbered
+  where
+    indices = Map.fromList (zip (Set.toList input.passages) [0 ..])
+    edges = IntMap.fromList [(index, mapMaybe (`Map.lookup` indices) (orthogonal position)) | (position, index) <- Map.toList indices]
+    numbered = Map.mapMaybe (`Map.lookup` indices) input.locations
+    fromLocation origin = Map.mapMaybe (`IntMap.lookup` reached) numbered
+      where
+        reached = Search.intDistances (\index -> IntMap.findWithDefault [] index edges) origin
 
 extend :: Distances -> Routes -> Routes
 extend distances states = Map.fromListWith min [((setBit visited target, target), cost + distance) | ((visited, source), cost) <- Map.toList states, (target, distance) <- Map.toList (Map.findWithDefault Map.empty source distances), not (testBit visited target)]
