@@ -28,7 +28,7 @@ solver text = do
     Input instructions <- parseInput text
     let program = Map.fromDistinctAscList (zip [0 ..] instructions)
     seed <- [1 ..] & find (clock program) & maybeToRight "No positive clock seed"
-    pure (Answers (show seed) (Just "0"))
+    pure (Answers (show seed) Nothing)
 
 clock :: Map Integer Instruction -> Integer -> Bool
 clock program seed = verify mempty 0 (Machine 0 (Map.fromList [(A, seed), (B, 0), (C, 0), (D, 0)]) program 0)
