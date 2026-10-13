@@ -13,7 +13,12 @@ import Data.Map.Strict qualified as Map
 solver :: Solver
 solver text = do
     Input rows <- parseInput text
-    let (most, least) = rows & NE.transpose & fmap decode & toList & unzip
+    let (most, least) =
+            rows
+                & NE.transpose
+                & fmap decode
+                & toList
+                & unzip
     pure (Answers (toText most) (Just (toText least)))
 
 decode :: NonEmpty Char -> (Char, Char)

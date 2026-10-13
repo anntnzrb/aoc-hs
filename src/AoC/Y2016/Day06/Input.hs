@@ -1,16 +1,15 @@
 -- | Nonempty, equal-width messages containing lowercase ASCII letters.
 module AoC.Y2016.Day06.Input (Input (Input), parseInput) where
 
+import AoC.Parse (Parser, parseText)
 import Data.Char (isAsciiLower)
-import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse, satisfy, try)
+import Text.Megaparsec (satisfy, try)
 import Text.Megaparsec.Char (eol)
 
 newtype Input = Input (NonEmpty (NonEmpty Char))
 
-type Parser = Parsec Void Text
-
 parseInput :: Text -> Either Text Input
-parseInput = parse (messages <* eof) "recording" >>> first (toText . errorBundlePretty)
+parseInput = parseText messages
 
 messages :: Parser Input
 messages = do
