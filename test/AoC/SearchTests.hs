@@ -21,7 +21,7 @@ tests =
         , testCase "edges are directed" (shortestDistance successors (== 1) 4 @?= Nothing)
         , testCase "finite prefix of infinite graph" (shortestDistance (\n -> [n + 1]) (== (5 :: Integer)) 0 @?= Just 5)
         , testCase "integer search agrees for every origin and target" (for_ [(origin, target) | origin <- [-1 .. 5], target <- [-1 .. 5]] compareSearch)
-        , testCase "integer distances agree including negative vertices" (for_ [-1 .. 5] compareDistances)
+        , testCase "integer distances agree including negative vertices" (for_ [-1, 0, 1, 2, 3, 4, 5] compareDistances)
         , testCase "integer search stops in an infinite graph" (shortestIntDistance (\n -> [n + 1]) (== 5) 0 @?= Just 5)
         ]
 
