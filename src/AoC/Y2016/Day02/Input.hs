@@ -1,20 +1,19 @@
 -- | Nonempty instruction lines containing only the four keypad directions.
 module AoC.Y2016.Day02.Input (Direction (Upward, Downward, Leftward, Rightward), Input (Input), parseInput) where
 
-import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse, try)
+import AoC.Parse (Parser, parseText)
+import Text.Megaparsec (try)
 import Text.Megaparsec.Char (char, eol)
 
 data Direction = Upward | Downward | Leftward | Rightward
 
 newtype Input = Input (NonEmpty (NonEmpty Direction))
 
-type Parser = Parsec Void Text
-
 parseInput :: Text -> Either Text Input
-parseInput = parse instructions "instructions" >>> first (toText . errorBundlePretty)
+parseInput = parseText instructions
 
 instructions :: Parser Input
-instructions = Input <$> ((:|) <$> line <*> many (try (eol *> line))) <* optional eol <* eof
+instructions = Input <$> ((:|) <$> line <*> many (try (eol *> line))) <* optional eol
 
 line :: Parser (NonEmpty Direction)
 line = (:|) <$> direction <*> many direction

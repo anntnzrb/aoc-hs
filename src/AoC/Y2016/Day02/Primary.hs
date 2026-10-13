@@ -28,7 +28,12 @@ layout :: [Text] -> Map Position Char
 layout rows = Map.fromList [((row, column), label) | (row, labels) <- zip [0 ..] rows, (column, label) <- zip [0 ..] (toString labels), label /= ' ']
 
 code :: Map Position Char -> Button -> NonEmpty (NonEmpty Direction) -> Text
-code keypad start rows = rows & mapAccumL press start & snd & toList & toText
+code keypad start rows =
+    rows
+        & mapAccumL press start
+        & snd
+        & toList
+        & toText
   where
     press :: Button -> NonEmpty Direction -> (Button, Char)
     press button moves = (next, snd next)
