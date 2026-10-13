@@ -3,6 +3,7 @@ module AoC.Y2016.Day09.Input (Input (Input), Chunk (Literal, Repeat), parseInput
 
 import AoC.Parse (Parser, boundedDecimal, parseText)
 import Data.Char (isSpace)
+import Data.Text qualified as T
 import Text.Megaparsec (takeP, takeWhile1P)
 import Text.Megaparsec.Char (char)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
@@ -25,9 +26,7 @@ spaces; reject malformed markers or truncated payloads. Errors are returned as t
 parseInput :: Text -> Either Text Input
 parseInput text =
     text
-        & toString
-        & filter (not . isSpace)
-        & toText
+        & T.filter (not . isSpace)
         & parseText (Input <$> many chunk)
 
 chunk :: Parser Chunk
