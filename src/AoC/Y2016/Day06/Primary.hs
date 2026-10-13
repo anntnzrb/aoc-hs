@@ -27,7 +27,9 @@ solver text = do
 decode :: NonEmpty Char -> (Char, Char)
 decode letters =
     letters
-        & foldl' (\counts letter -> Map.insertWith (+) letter (1 :: Int) counts) Map.empty
+        & toList
+        <&> (,1 :: Int)
+        & Map.fromListWith (+)
         & Map.foldlWithKey'
             (\(most, least) letter count -> (max most (count, letter), min least (count, letter)))
             ((0, head letters), (maxBound, head letters))
