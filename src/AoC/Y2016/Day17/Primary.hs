@@ -10,10 +10,9 @@ Exhaustive search assumes the path tree is finite; no route prints 0 for both.
 -}
 module AoC.Y2016.Day17.Primary (solver) where
 
+import AoC.MD5 (md5Hex)
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day17.Input (Input (Input), parseInput)
-import Crypto.Hash.MD5 qualified as MD5
-import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BS
 
 data Route = Route Int Int ByteString
@@ -49,6 +48,6 @@ nextRoutes passcode route@(Route row column path)
         , nextColumn >= 0 && nextColumn < 4
         ]
   where
-    doors = MD5.hash (passcode <> path) & Base16.encode & BS.take 4 & BS.unpack
+    doors = md5Hex (passcode <> path) & BS.take 4 & BS.unpack
     moves :: [(Char, Int, Int)]
     moves = [('U', -1, 0), ('D', 1, 0), ('L', 0, -1), ('R', 0, 1)]
