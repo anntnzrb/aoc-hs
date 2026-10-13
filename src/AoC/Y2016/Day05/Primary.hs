@@ -23,7 +23,12 @@ solver :: Solver
 solver text = do
     Input door <- parseInput text
     let hits = [digits | index <- iterate increment "0", Just digits <- [nextDigits (encodeUtf8 door) index]]
-    pure (hits & scanl' addHit ([], Map.empty) & find complete & renderPasswords)
+    pure
+        ( hits
+            & scanl' addHit ([], Map.empty)
+            & find complete
+            & renderPasswords
+        )
 
 nextDigits :: ByteString -> ByteString -> Maybe (Char, Char)
 nextDigits door index = case BS.uncons digest of
@@ -61,7 +66,10 @@ addHit (sequential, positional) (position, value) =
         | otherwise = positional
 
 complete :: ([Char], Map Char Char) -> Bool
-complete = snd >>> Map.size >>> (== 8)
+complete =
+    snd
+        >>> Map.size
+        >>> (== 8)
 
 renderPasswords :: Maybe ([Char], Map Char Char) -> Answers
 renderPasswords = \case
