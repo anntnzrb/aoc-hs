@@ -1,6 +1,10 @@
 -- | Every registered solution against every fixture of its day.
 module Main (main) where
 
+import OpsTests qualified
+
+-- ops:test-imports
+
 import AoC.Registry (Key (day, year), solvers)
 import AoC.Solution (Solver, render)
 import Data.Map.Strict qualified as Map
@@ -13,7 +17,13 @@ import Test.Tasty.HUnit (assertFailure, testCase, (@?=))
 main :: IO ()
 main = do
     tests <- Map.toList solvers & traverse solutionTests
-    testGroup "fixtures" tests & defaultMain
+    defaultMain $
+        testGroup
+            "all"
+            [ testGroup "fixtures" tests
+            , OpsTests.tests
+            -- ops:test-entries
+            ]
 
 -- | A fixture directory: fixtures/YEAR/DD.
 fixtureDir :: Key -> FilePath

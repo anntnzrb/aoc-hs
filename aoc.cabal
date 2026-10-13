@@ -66,11 +66,49 @@ test-suite test
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        Main.hs
+  other-modules: OpsTests
+    -- ops:test-modules
   build-depends:
     , aoc
+    , aoc:ops
+    , hedgehog
+    , tasty-hedgehog
     , containers
     , directory
     , filepath
     , tasty
     , tasty-hunit
     , text
+
+
+library ops
+  import: language
+  ghc-options: -hiedir=.hie/ops
+  hs-source-dirs: app/aoc-ops/lib
+  exposed-modules: Ops.Logic Ops.Scaffold Ops.Runtime Ops.Command Ops.Measurement Ops.Process Ops.Benchmark
+  build-depends:
+    , aoc
+    , containers
+    , time
+    , bytestring
+    , directory
+    , effectful
+    , filepath
+    , http-client
+    , http-client-tls
+    , http-types
+    , haskell-lexer
+    , optparse-applicative
+    , process
+    , tagsoup
+    , text
+
+executable aoc-ops
+  import: language
+  ghc-options: -hiedir=.hie/aoc-ops
+  hs-source-dirs: app/aoc-ops
+  main-is: Main.hs
+  build-depends:
+    , aoc:ops
+    , effectful
+    , optparse-applicative

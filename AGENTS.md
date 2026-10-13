@@ -206,18 +206,14 @@ opportunities without expanding worker ownership.
 
 ## Status
 
-The cabal package has the library, `aoc` dispatcher and tasty fixture runner.
-The registry is empty. `aoc-ops`, templates and per-year modules do not exist;
-workflow tooling implements only the gate. The initial commit awaits the
-user's go; it must then exist before isolated checkouts. No publishing remote
-is configured; push is unavailable until the user supplies its URL.
-Setup steps 2–6 remain. The deliverable includes a Workflow operations row
-for every operation contract, including fetch (with explicit re-fetch),
-puzzle (statement refresh), submit, new, test, run personal input, build,
-doc check, bench and record. Do not invent commands for unimplemented
-operations. Do not fetch, submit or solve until setup is implemented and
-verified. Architecture, Toolchain and Code are settled rules.
-Never read another language's AoC repository: it contains solutions.
+The initial commit exists and setup is complete on x86_64 Linux (oulu); macOS
+is not yet verified. The cabal package has the pure solution library, `aoc`
+dispatcher, tasty fixture runner and separate `aoc-ops` executable/internal
+library; `aoc-ops` implements `fetch` (with `--force`), `puzzle`, `submit`,
+`new`, `doc`, `bench` and `record`. No publishing remote is configured yet
+(push is unavailable until the user supplies a URL). Architecture, Toolchain
+and Code are settled rules. Never read another language's AoC repository: it
+contains solutions.
 
 ## Critical repository rules
 
@@ -540,17 +536,37 @@ post-publication audit references go in `MAIN/.cache/audit/<YEAR>/<DD>/`.
 Multi-day regression answers go in `MAIN/.cache/regression/<commit>/`.
 Every worker and audit-helper brief names its exact path.
 
+`new` runs from the repository root and formats generated Haskell with the
+locked devshell's fourmolu. It preflights all writes before modifying files.
+On the first primary it separates Key/Variant into `AoC.Registry.Types` to
+avoid a root/year registry cycle while preserving `AoC.Registry` exports.
+It creates registration anchors itself in the root and year registries;
+`test/Main.hs` and cabal already carry the scaffold anchors. Subsequent
+registrations require exactly one copy of each anchor and refuse ambiguity.
+
 The submit implementation must accept only answers matching `[0-9A-Za-z,-]+`
 and keep the session off the command line. Exit 0 for right, 1 for wrong,
 2 only for "You gave an answer too recently" (cooldown) or "You don't seem
 to be solving the right level" (already complete), and 3 for unknown
-responses. For cooldown, the page states "You have Ns left to wait": wait
-that long and retry the same answer.
+responses. Local failures (usage, validation, scaffolding, filesystem, tool,
+or HTTP/transport errors) exit 4; these are not server verdicts. For cooldown,
+the page states "You have Ns left to wait": wait that long and retry the same
+answer.
 
 | Operation | Command or location |
 | --- | --- |
 | Establish repository | `git init -b main`; initial commit via the commit operation; `git remote add origin URL` with the user's publishing URL. `.gitignore` excludes `.env` variants, `inputs/`, `puzzles/` and `fixtures/`; the user provisions `.env` locally, agents never handle it. |
-| Full gate | `just check` |
+| Fetch | `nix develop -c cabal run -v0 aoc-ops -- fetch YEAR DAY [--force]`; cache `inputs/YEAR/dayDD.txt`, reuse by default, `--force` re-fetches. Non-200 responses are never cached. |
+| Puzzle / refresh statement | `nix develop -c cabal run -v0 aoc-ops -- puzzle YEAR DAY`; always refresh `puzzles/YEAR/DD.txt`, only day-desc articles, past-answer paragraphs removed. |
+| Submit | `nix develop -c cabal run -v0 aoc-ops -- submit YEAR DAY PART ANSWER`; validates before network, prints article text including cooldown duration, exit codes 0/1/2/3 as above. |
+| New | `nix develop -c cabal run -v0 aoc-ops -- new YEAR DAY [EXPLORATION]`; refuse existing solution paths, create templates/registries/cabal entries/fixture directory; exploration names are CamelCase modules, CLI variant names are lowercase (e.g. `Lazy` becomes `lazy`). Adds a generated hedgehog property and grammar generator stub to replace from the statement. |
+| Test | `nix develop -c cabal test all`; offline operation tests, fixture comparisons, generated exploration properties. |
+| Run personal input | `nix develop -c cabal run -v0 aoc -- YEAR DAY < inputs/YEAR/dayDD.txt`; append lowercase EXPLORATION for a variant. |
+| Build | `nix develop -c cabal build all`; cabal rebuilds registered components with default `-O1`. |
+| Doc check | `nix develop -c cabal run -v0 aoc-ops -- doc`; required solution header tags, no String type signatures under src/AoC, no HLINT/ANN annotations in app/src/test; included in `just check`. |
+| Bench | `nix develop -c cabal run -v0 aoc-ops -- bench YEAR DAY`; builds and measures the optimized binary directly after all registered variants match primary output on cached real input. Five interleaved full/empty instructions:u pairs; timing rounds interleave variants, 10 runs (3 if the first timed run exceeds 1 s). Linux pins to a permitted P-core, falling back to a fixed permitted CPU; macOS has no affinity or work counter. Reports medians/ranges and limitations; never writes records. |
+| Record | `nix develop -c cabal run -v0 aoc-ops -- record YEAR DAY`; same measurement, requiring clean tracked main before measurement and recording. Appends the shared schema to `bench/YEAR.csv`, creates `bench/hosts/HOST.md` if absent. Text fields are quoted; unavailable metrics are empty. Wall uses separate solver runs under taskset only (no wrapper on macOS), with monotonic elapsed microseconds including process spawn and stdin/stdout piping. Linux CPU uses separate taskset perf stat -- solver runs without GNU time (default user+sys seconds printed to 1 ns, stored at 1 us resolution), interleaved with wall runs and across variants at the same run count. RSS uses separate pinned GNU time -f %M -- solver runs, taking peak KiB across runs; its CPU fields are unused. CPU and RSS include solver runtime startup. Numeric CSV fields round to integer schema units. If any CPU sample is missing or below 1 us, the whole CPU statistic is unavailable. A one-time perf probe treats explicit permission/PMU denial as unavailable work, instructions and CPU; timing/RSS continue. macOS and absent perf leave CPU unavailable. Counter/affinity limitations are reported and captured in host snapshots. |
+| Full gate | `nix develop -c just check` |
 | Commit | Use the autommit skill; run `uv run --script ~/.claude/skills/autommit/scripts/cli.py` bare, with no flags or arguments and nothing staged. If unavailable or unfamiliar staged work exists, stop and report; never discard that work or commit another way. |
 | Create isolated checkout | `git -C MAIN worktree add -b BRANCH WORK main` |
 | Integrate | `git -C MAIN switch main`, then `git -C MAIN merge BRANCH` |
