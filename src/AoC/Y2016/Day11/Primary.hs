@@ -49,7 +49,11 @@ unpackArrangement :: Int -> Int -> Int -> Arrangement
 -- The fixed pair count preserves leading zero pairs. Sorted pairs decode
 -- least-significant-first (reversed); successors re-sort before repacking,
 -- so the reversed decoding still produces canonical keys.
-unpackArrangement count base encoded = Arrangement (codeFloor (encoded `div` base)) [(codeFloor (pair `div` 4), codeFloor (pair `mod` 4)) | digit <- take count (iterate (`div` 16) encoded), let pair = digit `mod` 16]
+unpackArrangement count base encoded = Arrangement (codeFloor (encoded `div` base)) (map decodePair (take count (iterate (`div` 16) encoded)))
+  where
+    decodePair digit = (codeFloor (pair `div` 4), codeFloor (pair `mod` 4))
+      where
+        pair = digit `mod` 16
 
 floorCode :: Floor -> Int
 floorCode = \case
@@ -75,13 +79,15 @@ safe pairs = all (\(generator, microchip) -> generator == microchip || not (test
 
 neighbours :: Arrangement -> [Arrangement]
 neighbours (Arrangement elevator pairs) =
-    [ Arrangement destination (sort moved)
+    [ result
     | destination <- adjacent elevator
     , cargo <- cargoes items
-    , let moved = moveCargo destination cargo pairs
-    , safe moved
+    , result <- movedArrangement destination cargo
     ]
   where
+    movedArrangement destination cargo = [Arrangement destination (sort moved) | safe moved]
+      where
+        moved = moveCargo destination cargo pairs
     items = [(index, component) | (index, (generator, microchip)) <- zip [0 ..] pairs, (component, floorNumber) <- [(Generator, generator), (Microchip, microchip)], floorNumber == elevator]
 
 cargoes :: [a] -> [[a]]
