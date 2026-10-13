@@ -5,6 +5,7 @@ trade: Exact shortest paths with symmetry reduction; part 2 adds two first-floor
 -}
 module AoC.Y2016.Day11.Primary (solver) where
 
+import AoC.Search (shortestDistance)
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day11.Input (Floor (FloorFour, FloorOne, FloorThree, FloorTwo), Input (Input), parseInput)
 import Data.Set qualified as Set
@@ -20,18 +21,10 @@ solver text = do
 
 shortest :: [(Floor, Floor)] -> Either Text Int
 shortest pairs
-    | safe pairs = search 0 (one initial) (one initial)
+    | safe pairs = shortestDistance neighbours complete initial & maybeToRight "No safe elevator route reaches the fourth floor"
     | otherwise = Left "Initial arrangement exposes an unpowered microchip"
   where
     initial = Arrangement FloorOne (sort pairs)
-
-search :: Int -> Set Arrangement -> Set Arrangement -> Either Text Int
-search distance seen frontier
-    | any complete frontier = Right distance
-    | Set.null frontier = Left "No safe elevator route reaches the fourth floor"
-    | otherwise = search (distance + 1) (Set.union seen next) next
-  where
-    next = frontier & Set.toList & concatMap neighbours & Set.fromList & (`Set.difference` seen)
 
 complete :: Arrangement -> Bool
 complete (Arrangement _ pairs) = all (== (FloorFour, FloorFour)) pairs
