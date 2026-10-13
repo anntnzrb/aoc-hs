@@ -4,8 +4,9 @@ import AoC.Assembunny (
     Dialect (Basic, Clock, SelfModifying),
     Instruction (Copy, Decrement, Increment, Jump, Output, Toggle),
     Machine (counter, program),
-    Register (A, B),
+    Register (A, B, C, D),
     Value (Literal, RegisterValue),
+    acceleratedStep,
     current,
     initialise,
     parseProgram,
@@ -17,7 +18,51 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 
 tests :: TestTree
-tests = testGroup "assembunny" [parsing, execution, toggling]
+tests = testGroup "assembunny" [parsing, execution, toggling, acceleration]
+
+acceleration :: TestTree
+acceleration = testGroup "loop acceleration" [addition, multiplication, division, refusal]
+
+division :: TestTree
+division = testCase "countdown division matches direct execution including the final partial block" $ do
+    for_ [(dividendValue, divisor) | dividendValue <- [0 .. 12], divisor <- [1 .. 5]] $ \(dividendValue, divisor) -> do
+        let instructions = [Copy (Literal 0) (RegisterValue A), Copy (Literal divisor) (RegisterValue C), Jump (RegisterValue B) (Literal 2), Jump (Literal 1) (Literal 6), Decrement (RegisterValue B), Decrement (RegisterValue C), Jump (RegisterValue C) (Literal (-4)), Increment (RegisterValue A), Jump (Literal 1) (Literal (-7)), Output (RegisterValue A)]
+            machine = initialise instructions [(A, 9), (B, dividendValue), (C, -1)]
+            steps = 4 + 4 * dividendValue + 3 * (dividendValue `div` divisor)
+        acceleratedStep machine @?= direct steps machine
+
+addition :: TestTree
+addition = testCase "signed counters and either adjustment order match direct execution" $ do
+    for_ [(count, delta, targetDelta, swapped) | count <- [-4 .. 4], delta <- [-1, 1], count * delta < 0, targetDelta <- [-1, 1], swapped <- [False, True]] $ \(count, delta, targetDelta, swapped) -> do
+        let pair = [adjust targetDelta A, adjust delta B]
+            instructions = (if swapped then reverse pair else pair) <> [Jump (RegisterValue B) (Literal (-2)), Output (RegisterValue A)]
+            machine = initialise instructions [(A, 7), (B, count)]
+        acceleratedStep machine @?= direct (3 * abs count) machine
+
+multiplication :: TestTree
+multiplication = testCase "signed multiplication preserves the complete machine" $ do
+    for_ [(inner, outer, targetDelta) | inner <- [-3, 2], outer <- [-2, 3], targetDelta <- [-1, 1]] $ \(inner, outer, targetDelta) -> do
+        let innerDelta = negate (signum inner)
+            outerDelta = negate (signum outer)
+            instructions = [Copy (RegisterValue D) (RegisterValue B), adjust targetDelta A, adjust innerDelta B, Jump (RegisterValue B) (Literal (-2)), adjust outerDelta C, Jump (RegisterValue C) (Literal (-5))]
+            machine = initialise instructions [(A, 4), (C, outer), (D, inner)]
+        acceleratedStep machine @?= direct (abs outer * (3 * abs inner + 3)) machine
+
+refusal :: TestTree
+refusal = testCase "nonterminating, aliased and toggled loops retain direct semantics" $ do
+    for_ [0, -2] $ \count -> do
+        let machine = initialise [Increment (RegisterValue A), Decrement (RegisterValue B), Jump (RegisterValue B) (Literal (-2))] [(B, count)]
+        acceleratedStep machine @?= step machine
+    let aliased = initialise [Increment (RegisterValue A), Decrement (RegisterValue A), Jump (RegisterValue A) (Literal (-2))] [(A, 2)]
+        dependent = initialise [Copy (RegisterValue A) (RegisterValue B), Increment (RegisterValue A), Decrement (RegisterValue B), Jump (RegisterValue B) (Literal (-2)), Decrement (RegisterValue C), Jump (RegisterValue C) (Literal (-5))] [(A, 2), (C, 3)]
+        toggled = initialise [Toggle (Literal 2), Increment (RegisterValue A), Decrement (RegisterValue B), Jump (RegisterValue B) (Literal (-2))] [(B, 2)] & step
+    for_ [aliased, dependent, toggled] $ \machine -> acceleratedStep machine @?= step machine
+
+adjust :: Integer -> Register -> Instruction
+adjust delta name = (if delta > 0 then Increment else Decrement) (RegisterValue name)
+
+direct :: Integer -> Machine -> Machine
+direct count machine = foldl' (\machineState _ -> step machineState) machine [1 .. count]
 
 parsing :: TestTree
 parsing = testCase "dialects preserve operand restrictions and consume all input" $ do
