@@ -3,12 +3,12 @@ module AoC.Y2016.Day07.Input (Address (Address, supernets, hypernets), parseInpu
 
 import AoC.Parse (Parser, parseText)
 import Data.Char (isAsciiLower)
-import Text.Megaparsec (sepEndBy1, takeWhile1P)
+import Text.Megaparsec (sepEndBy1, takeWhile1P, try)
 import Text.Megaparsec.Char (char, eol)
 
 {- | Outside and inside bracket segments of one IPv7 address, each in written order.
-Parsing requires nonempty lowercase segments; direct construction must preserve
-those invariants.
+Parsing requires nonempty lowercase segments, starting outside brackets and
+optionally ending inside brackets; direct construction must preserve those invariants.
 -}
 data Address
     = -- | Outside-bracket segments followed by inside-bracket segments.
@@ -20,7 +20,8 @@ data Address
       }
 
 {- | Accept nonempty lowercase IPv7 lines with alternating bracketed segments; reject
-empty segments or unbalanced brackets. Errors are returned as text.
+empty segments or unbalanced brackets. A final bracketed segment is allowed.
+Errors are returned as text.
 -}
 parseInput :: Text -> Either Text [Address]
 parseInput = parseText (address `sepEndBy1` eol)
@@ -28,8 +29,12 @@ parseInput = parseText (address `sepEndBy1` eol)
 address :: Parser Address
 address = do
     start <- letters
-    rest <- many ((,) <$> (char '[' *> letters <* char ']') <*> letters)
-    pure (Address (start :| map snd rest) (map fst rest))
+    rest <- many (try ((,) <$> hypernet <*> letters))
+    terminal <- optional hypernet
+    pure (Address (start :| map snd rest) (map fst rest <> maybeToList terminal))
+
+hypernet :: Parser Text
+hypernet = char '[' *> letters <* char ']'
 
 letters :: Parser Text
 letters = takeWhile1P (Just "lowercase letters") isAsciiLower
