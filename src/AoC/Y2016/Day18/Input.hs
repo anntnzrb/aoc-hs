@@ -5,7 +5,6 @@ import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse)
 import Text.Megaparsec.Char (char, newline)
 
 data Tile = Safe | Trap
-    deriving stock (Eq)
 
 newtype Input = Input (NonEmpty Tile)
 
