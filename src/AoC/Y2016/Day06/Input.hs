@@ -1,8 +1,7 @@
--- | Nonempty, equal-width messages containing lowercase ASCII letters.
+-- | Nonempty, equal-width messages containing any characters except CR and LF.
 module AoC.Y2016.Day06.Input (Input (Input), parseInput) where
 
 import AoC.Parse (Parser, parseText)
-import Data.Char (isAsciiLower)
 import Text.Megaparsec (satisfy, try)
 import Text.Megaparsec.Char (eol)
 
@@ -11,8 +10,8 @@ newtype Input
     = -- | Messages in received order.
       Input (NonEmpty (NonEmpty Char))
 
-{- | Accept nonempty equal-width lowercase ASCII messages; reject ragged rows, blank
-lines and other letters. Errors are returned as text.
+{- | Accept nonempty equal-width messages, with CR and LF reserved for line endings;
+reject ragged rows and blank lines. Errors are returned as text.
 -}
 parseInput :: Text -> Either Text Input
 parseInput = parseText messages
@@ -24,7 +23,7 @@ messages = do
     pure (Input rows)
 
 message :: Parser (NonEmpty Char)
-message = (:|) <$> letter <*> many letter
+message = (:|) <$> character <*> many character
   where
-    letter :: Parser Char
-    letter = satisfy isAsciiLower
+    character :: Parser Char
+    character = satisfy (\c -> c /= '\r' && c /= '\n')
