@@ -160,7 +160,14 @@ multiplyLoop machine = do
     let multiplicand = readValue source machine
         multiplier = readValue (RegisterValue outer) machine
     guard (multiplicand * temporaryDelta < 0 && multiplier * outerDelta < 0)
-    pure (complete machine 6 [(target, readValue (RegisterValue target) machine + targetDelta * abs multiplicand * abs multiplier), (temporary, 0), (outer, 0)])
+    pure $
+        complete
+            machine
+            6
+            [ (target, readValue (RegisterValue target) machine + targetDelta * abs multiplicand * abs multiplier)
+            , (temporary, 0)
+            , (outer, 0)
+            ]
 
 addLoop :: Machine -> Maybe Machine
 addLoop machine = do
@@ -168,13 +175,22 @@ addLoop machine = do
     (firstRegister, firstDelta) <- adjustment firstStep
     (secondRegister, secondDelta) <- adjustment secondStep
     guard (firstRegister /= secondRegister)
-    ((target, targetDelta), (counterRegister, counterDelta)) <-
-        if condition == secondRegister
-            then Just ((firstRegister, firstDelta), (secondRegister, secondDelta))
-            else if condition == firstRegister then Just ((secondRegister, secondDelta), (firstRegister, firstDelta)) else Nothing
+    ((target, targetDelta), (counterRegister, counterDelta)) <- roles condition (firstRegister, firstDelta) (secondRegister, secondDelta)
     let count = readValue (RegisterValue counterRegister) machine
     guard (count * counterDelta < 0)
-    pure (complete machine 3 [(target, readValue (RegisterValue target) machine + targetDelta * abs count), (counterRegister, 0)])
+    pure $
+        complete
+            machine
+            3
+            [ (target, readValue (RegisterValue target) machine + targetDelta * abs count)
+            , (counterRegister, 0)
+            ]
+  where
+    roles :: Register -> (Register, Integer) -> (Register, Integer) -> Maybe ((Register, Integer), (Register, Integer))
+    roles condition firstChange secondChange
+        | condition == fst secondChange = Just (firstChange, secondChange)
+        | condition == fst firstChange = Just (secondChange, firstChange)
+        | otherwise = Nothing
 
 window :: Integer -> Machine -> Maybe [Instruction]
 window size machine = traverse (\offset -> Map.lookup (machine.counter + offset) machine.program) [0 .. size - 1]
