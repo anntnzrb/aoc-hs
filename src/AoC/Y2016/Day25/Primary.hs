@@ -5,20 +5,13 @@ trade: Exact cycle detection proves endless output rather than trusting a finite
 -}
 module AoC.Y2016.Day25.Primary (solver) where
 
+import AoC.Assembunny (Instruction (Output), Machine (registers), Register (A, B, C, D), current, initialise, readValue, step)
 import AoC.Solution (Answers (Answers), Solver)
-import AoC.Y2016.Day25.Input (
-    Input (Input),
-    Instruction (Copy, Decrement, Increment, Jump, Output, Toggle),
-    Register (A, B, C, D),
-    Value (Literal, RegisterValue),
-    parseInput,
- )
+import AoC.Y2016.Day25.Input (Input (Input), parseInput)
 import Data.Map.Strict qualified as Map
 
-data Machine = Machine
-    { counter :: Integer
-    , registers :: Map Register Integer
-    , program :: Map Integer Instruction
+data Signal = Signal
+    { machine :: Machine
     , expected :: Integer
     }
     deriving stock (Eq, Ord)
@@ -26,61 +19,23 @@ data Machine = Machine
 solver :: Solver
 solver text = do
     Input instructions <- parseInput text
-    let program = Map.fromDistinctAscList (zip [0 ..] instructions)
-    seed <- [1 ..] & find (clock program) & maybeToRight "No positive clock seed"
+    let machine = initialise instructions []
+    seed <- [1 ..] & find (clock machine) & maybeToRight "No positive clock seed"
     pure (Answers (show seed) Nothing)
 
-clock :: Map Integer Instruction -> Integer -> Bool
-clock program seed = verify mempty 0 (Machine 0 (Map.fromList [(A, seed), (B, 0), (C, 0), (D, 0)]) program 0)
+clock :: Machine -> Integer -> Bool
+clock machine seed = verify mempty 0 (Signal machine{registers = Map.fromList [(A, seed), (B, 0), (C, 0), (D, 0)]} 0)
 
 -- Include the next expected bit in the key; a silent cycle emits no new bits.
-verify :: Map Machine Integer -> Integer -> Machine -> Bool
-verify seen emitted machine = case Map.lookup machine seen of
+verify :: Map Signal Integer -> Integer -> Signal -> Bool
+verify seen emitted signal = case Map.lookup signal seen of
     Just previous -> emitted > previous
-    Nothing -> case Map.lookup machine.counter machine.program of
+    Nothing -> case current signal.machine of
         Nothing -> False
         Just (Output value)
-            | readValue value machine /= machine.expected -> False
-        Just instruction -> verify (Map.insert machine emitted seen) (emitted + outputCount instruction) (apply machine instruction)
-
-outputCount :: Instruction -> Integer
-outputCount = \case
-    Output _ -> 1
-    Copy{} -> 0
-    Increment{} -> 0
-    Decrement{} -> 0
-    Jump{} -> 0
-    Toggle{} -> 0
-
-apply :: Machine -> Instruction -> Machine
-apply machine = \case
-    Copy source destination -> advance (writeValue destination (readValue source machine) machine)
-    Increment destination -> advance (writeValue destination (readValue destination machine + 1) machine)
-    Decrement destination -> advance (writeValue destination (readValue destination machine - 1) machine)
-    Jump condition offset
-        | readValue condition machine /= 0 -> machine{counter = machine.counter + readValue offset machine}
-        | otherwise -> advance machine
-    Toggle offset -> advance machine{program = Map.adjust toggle (machine.counter + readValue offset machine) machine.program}
-    Output _ -> advance machine{expected = 1 - machine.expected}
-
-advance :: Machine -> Machine
-advance machine = machine{counter = machine.counter + 1}
-
-toggle :: Instruction -> Instruction
-toggle = \case
-    Increment value -> Decrement value
-    Decrement value -> Increment value
-    Toggle value -> Increment value
-    Output value -> Increment value
-    Jump source destination -> Copy source destination
-    Copy source destination -> Jump source destination
-
-readValue :: Value -> Machine -> Integer
-readValue value machine = case value of
-    Literal number -> number
-    RegisterValue register -> Map.findWithDefault 0 register machine.registers
-
-writeValue :: Value -> Integer -> Machine -> Machine
-writeValue destination number machine = case destination of
-    Literal _ -> machine
-    RegisterValue register -> machine{registers = Map.insert register number machine.registers}
+            | readValue value signal.machine /= signal.expected -> False
+            | otherwise -> continue 1 (1 - signal.expected)
+        Just _ -> continue 0 signal.expected
+  where
+    continue :: Integer -> Integer -> Bool
+    continue count expected = verify (Map.insert signal emitted seen) (emitted + count) (Signal (step signal.machine) expected)
