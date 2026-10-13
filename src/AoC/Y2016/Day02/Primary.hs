@@ -1,6 +1,6 @@
 {- |
 approach: Fold each instruction line over adjacent keypad buttons, retaining the previous button between lines.
-cost: O(n) time and O(n) parsed input memory, O(l) output for l lines; two input passes including parsing.
+cost: O(n) time and O(n) parsed input memory, O(l) output for l lines; three input passes including parsing and both keypads.
 trade: A fixed coordinate map makes rejected moves explicit and keeps the simulation total.
 -}
 module AoC.Y2016.Day02.Primary (solver) where
@@ -16,10 +16,16 @@ type Button = (Position, Char)
 solver :: Solver
 solver text = do
     Input rows <- parseInput text
-    pure (Answers (code square ((1, 1), '5') rows) (Just "0"))
+    pure (Answers (code square ((1, 1), '5') rows) (Just (code diamond ((2, 0), '5') rows)))
 
 square :: Map Position Char
-square = Map.fromList [((row, column), label) | (row, labels) <- zip [0 ..] ["123", "456", "789"], (column, label) <- zip [0 ..] labels]
+square = layout ["123", "456", "789"]
+
+diamond :: Map Position Char
+diamond = layout ["  1", " 234", "56789", " ABC", "  D"]
+
+layout :: [Text] -> Map Position Char
+layout rows = Map.fromList [((row, column), label) | (row, labels) <- zip [0 ..] rows, (column, label) <- zip [0 ..] (toString labels), label /= ' ']
 
 code :: Map Position Char -> Button -> NonEmpty (NonEmpty Direction) -> Text
 code keypad start rows = rows & mapAccumL press start & snd & toList & toText
