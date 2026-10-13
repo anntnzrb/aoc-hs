@@ -5,8 +5,8 @@ index order, using one MD5 round or 2017 successive lowercase-hex rounds.
 cost: O(N * (L + log N + R + W)) time, O(W + L + log N) live memory for salt
 length L, fixed-size rounds R and lookahead W = 1000; one input pass and two
 index traversals, with a constant-space round counter.
-trade: Cached lazy lookahead hashes each index once per part. A countdown
-hashes byte buffers directly without traversing a round range; triplets
+trade: Cached lazy lookahead hashes each index once per part. A strict fold
+over the round range hashes byte buffers directly; triplets
 still scan a bounded lookahead window.
 -}
 module AoC.Y2016.Day14.Primary (solver) where
