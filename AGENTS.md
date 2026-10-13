@@ -674,7 +674,7 @@ Also note `cabal build aoc` is ambiguous (library and executable): use
 - relude does not export `until` or `foldM`; use `iterate`/`find` and
   `foldlM`. The library depends directly on `text` for Text-native operations
   such as `Data.Text.any` and `Data.Text.length` that relude does not
-  re-export; import `Data.Text` qualified.
+  re-export; import `Data.Text` qualified as `T`.
 - Clever optimisations (closed forms, bit-parallel rows, loop acceleration,
   packed states) need committed differential properties against a literal
   statement-derived reference in `test/AoC/Y<YEAR>/DayDD.hs`; scratch
