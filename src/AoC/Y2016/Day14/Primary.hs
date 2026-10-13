@@ -3,13 +3,15 @@ approach: Share a lazy stream of hash summaries; a candidate's first triplet
 must match a quintuple in the following thousand summaries. Take 64 keys in
 index order, using one MD5 round or 2017 successive lowercase-hex rounds.
 cost: O(N * (L + log N + R + W)) time, O(W + L + log N) live memory for salt
-length L, rounds R and lookahead W = 1000; one input pass, two index traversals.
-trade: Cached lazy lookahead hashes each index once per part and keeps the
-matching rule direct, at the cost of scanning a bounded window per triplet.
+length L, fixed-size rounds R and lookahead W = 1000; one input pass and two
+index traversals, with a constant-space round counter.
+trade: Cached lazy lookahead hashes each index once per part. A countdown
+hashes byte buffers directly without traversing a round range; triplets
+still scan a bounded lookahead window.
 -}
 module AoC.Y2016.Day14.Primary (solver) where
 
-import AoC.MD5 (md5Hex)
+import AoC.MD5 (md5HexRepeated)
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day14.Input (Input (Input), parseInput)
 import Data.ByteString qualified as BS
@@ -33,7 +35,7 @@ keyIndex rounds salt =
 hashSummary :: Int -> ByteString -> (Maybe Char, [Char])
 hashSummary rounds bytes = (triplet, quintuples)
   where
-    runs = foldl' (\digest _ -> md5Hex digest) bytes [1 .. rounds] & BSC.group
+    runs = md5HexRepeated rounds bytes & BSC.group
     triplet = find ((>= 3) . BS.length) runs >>= fmap fst . BSC.uncons
     quintuples = [digit | run <- runs, BS.length run >= 5, Just (digit, _) <- [BSC.uncons run]]
 
