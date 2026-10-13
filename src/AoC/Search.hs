@@ -24,10 +24,11 @@ breadthFirstLayers successors origin = unfoldr advance (0, one origin, one origi
       where
         next =
             frontier
-                & Set.toList
-                & concatMap successors
-                & Set.fromList
-                & (`Set.difference` visited)
+                & Set.foldl' (\reached vertex -> foldl' discover reached (successors vertex)) Set.empty
+
+        discover reached vertex
+            | Set.member vertex visited = reached
+            | otherwise = Set.insert vertex reached
 
 shortestDistance :: (Ord vertex) => (vertex -> [vertex]) -> (vertex -> Bool) -> vertex -> Maybe Int
 shortestDistance successors finished origin = breadthFirstLayers successors origin & find (any finished . snd) <&> fst
