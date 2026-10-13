@@ -1,11 +1,12 @@
 {- | Checked decimal parsing for bounded integral domain values on Text.
 'boundedDecimal' consumes one or more digits without a sign;
 'boundedSignedDecimal' also accepts an immediately preceding '+' or '-'.
+'boundedSignedDecimalWithin' additionally enforces a supplied inclusive range.
 Neither consumes whitespace. Values outside the target type's inclusive
 minimum and maximum fail before conversion, including negative unsigned values.
 'parseText' requires complete input consumption and returns textual errors.
 -}
-module AoC.Parse (Parser, boundedDecimal, boundedSignedDecimal, parseText) where
+module AoC.Parse (Parser, boundedDecimal, boundedSignedDecimal, boundedSignedDecimalWithin, parseText) where
 
 import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
@@ -24,6 +25,18 @@ values outside the target bounds.
 -}
 boundedSignedDecimal :: (Integral a, Bounded a) => Parser a
 boundedSignedDecimal = Lexer.signed pass Lexer.decimal >>= checkedIntegral
+
+{- | Consume a checked signed decimal without whitespace, then require it to lie
+within the supplied inclusive minimum and maximum. Reversed bounds reject every
+value. Machine overflow fails before the range check; range failures report
+"out of range".
+-}
+boundedSignedDecimalWithin :: (Integral a, Bounded a) => (a, a) -> Parser a
+boundedSignedDecimalWithin (minimum', maximum') = boundedSignedDecimal >>= within
+  where
+    within value
+        | minimum' <= value && value <= maximum' = pure value
+        | otherwise = fail "out of range"
 
 checkedIntegral :: forall a. (Integral a, Bounded a) => Integer -> Parser a
 checkedIntegral number

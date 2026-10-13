@@ -1,11 +1,11 @@
 module AoC.ParseTests (tests) where
 
-import AoC.Parse (boundedDecimal, boundedSignedDecimal, parseText)
+import AoC.Parse (boundedDecimal, boundedSignedDecimal, boundedSignedDecimalWithin, parseText)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 
 tests :: TestTree
-tests = testGroup "bounded decimal parsing" [naturalTests, signedTests]
+tests = testGroup "bounded decimal parsing" [naturalTests, signedTests, rangeTests]
 
 naturalTests :: TestTree
 naturalTests =
@@ -40,4 +40,20 @@ signedTests =
             isLeft (parseText (boundedSignedDecimal @Word) "-1") @?= True
         , testCase "signs, whitespace and incomplete input follow the grammar" $
             for_ ["", "+", "-", "- 1", "+ 1", "1x"] (\text -> isLeft (parseText (boundedSignedDecimal @Int) text) @?= True)
+        ]
+
+rangeTests :: TestTree
+rangeTests =
+    testGroup
+        "inclusive signed range"
+        [ testCase "interior and both inclusive bounds" $
+            traverse (parseText (boundedSignedDecimalWithin @Int (-2, 2))) ["-2", "0", "+2"] @?= Right [-2, 0, 2]
+        , testCase "below and above the range are rejected" $
+            for_ ["-3", "3"] (\text -> isLeft (parseText (boundedSignedDecimalWithin @Int (-2, 2)) text) @?= True)
+        , testCase "machine overflow is rejected before range validation" $
+            for_
+                [toInteger (minBound @Int) - 1, toInteger (maxBound @Int) + 1]
+                (\value -> isLeft (parseText (boundedSignedDecimalWithin @Int (minBound, maxBound)) (show value)) @?= True)
+        , testCase "reversed bounds reject every value" $
+            for_ ["-2", "0", "2"] (\text -> isLeft (parseText (boundedSignedDecimalWithin @Int (2, -2)) text) @?= True)
         ]
