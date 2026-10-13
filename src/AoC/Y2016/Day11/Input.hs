@@ -67,7 +67,7 @@ separator = try (string ", and ") <|> string ", " <|> string " and "
 
 itemParser :: Parser (Text, Component)
 itemParser = do
-    _ <- string "a "
+    _ <- string "a " <|> string "an "
     element <- some lowerChar <&> toText
     component <- Generator <$ string " generator" <|> Microchip <$ string "-compatible microchip"
     pure (element, component)

@@ -1,6 +1,7 @@
 module AoC.Y2016.Day11 (tests) where
 
 import AoC.Solution (render)
+import AoC.Y2016.Day11.Input (parseInput)
 import AoC.Y2016.Day11.Primary (solver)
 import Data.Set qualified as Set
 import Hedgehog (Property, forAll, property, withTests, (===))
@@ -19,8 +20,23 @@ tests =
         "2016/11"
         [ testProperty "safe inventories and element renaming" inventories
         , testCase "oversized safe stranded inventory" overflow
+        , testCase "inventory articles a and an" articles
         -- ops:property-entries
         ]
+
+articles :: IO ()
+articles =
+    void
+        ( parseInput
+            ( unlines
+                [ "The first floor contains an elerium generator and an elerium-compatible microchip."
+                , "The second floor contains a hydrogen generator and a hydrogen-compatible microchip."
+                , "The third floor contains nothing relevant."
+                , "The fourth floor contains nothing relevant."
+                ]
+            )
+        )
+        @?= Right ()
 
 inventories :: Property
 inventories =
