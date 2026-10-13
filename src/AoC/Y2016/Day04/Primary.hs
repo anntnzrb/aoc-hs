@@ -8,6 +8,7 @@ module AoC.Y2016.Day04.Primary (solver) where
 import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day04.Input (Room (checksum, sector, words), parseInput)
 import Data.Map.Strict qualified as Map
+import Data.Text qualified as T
 
 {- | Sum sectors of rooms with valid checksums and locate the decrypted northpole
 storage room; use 0 when it is absent. Input grammar errors are returned as text.
@@ -29,10 +30,7 @@ storage room =
         & (== "northpole object storage")
   where
     decrypt :: Text -> Text
-    decrypt =
-        toString
-            >>> map (rotate room.sector)
-            >>> toText
+    decrypt = T.map (rotate room.sector)
 
 rotate :: Natural -> Char -> Char
 rotate sector letter = chr (ord 'a' + (ord letter - ord 'a' + fromIntegral (sector `mod` 26)) `mod` 26)
