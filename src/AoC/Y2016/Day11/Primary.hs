@@ -1,7 +1,7 @@
 {- |
 approach: Breadth-first elevator search; sort generator/chip floor pairs to identify equivalent element renamings.
 cost: O(V n^3 log(V n)) time and O(V n) memory for V reachable canonical states and n pairs; one parsing pass.
-trade: Exact shortest paths with symmetry reduction, retaining every safe one-item and two-item move.
+trade: Exact shortest paths with symmetry reduction; part 2 adds two first-floor pairs, or prints 0 if they make the starting inventory unsafe.
 -}
 module AoC.Y2016.Day11.Primary (solver) where
 
@@ -16,7 +16,7 @@ solver :: Solver
 solver text = do
     Input pairs <- parseInput text
     steps <- shortest pairs
-    pure (Answers (show steps) (Just "0"))
+    pure (Answers (show steps) (Just (either (const "0") show (shortest ((FloorOne, FloorOne) : (FloorOne, FloorOne) : pairs)))))
 
 shortest :: [(Floor, Floor)] -> Either Text Int
 shortest pairs
