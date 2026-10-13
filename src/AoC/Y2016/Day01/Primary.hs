@@ -1,12 +1,13 @@
 {- |
-approach: Fold turns and whole-block displacements from north, then sum absolute coordinates.
-cost: O(n) time and parsed-input memory, O(1) fold state; two passes (parse and fold).
-trade: Direct endpoint simulation skips per-block walking; part 2 remains unfinished.
+approach: Fold endpoints for the final distance; stream intervening blocks to find the first revisit.
+cost: n instructions, b blocks checked: O(n + b log(b + 1)) time, O(n + b) memory; three passes.
+trade: Endpoint jumps keep part 1 cheap; part 2 stores visits and stops at the first repeat.
 -}
 module AoC.Y2016.Day01.Primary (solver) where
 
 import AoC.Solution (Answers (Answers), Solver)
 import AoC.Y2016.Day01.Input (Input (Input), Instruction (Instruction), Steps (Steps), Turn (TurnLeft, TurnRight), parseInput)
+import Data.Set qualified as Set
 
 data Heading = North | East | South | West
 
@@ -20,7 +21,33 @@ solver text = do
                 & foldl' walk (Location North 0 0)
                 & distance
                 & show
-    pure (Answers answer (Just "0"))
+    -- A route without a revisit still has a valid part-1 answer.
+    pure (Answers answer (Just (firstRevisit route & fromMaybe 0 & show)))
+
+firstRevisit :: NonEmpty Instruction -> Maybe Integer
+firstRevisit route =
+    zipWith segmentPositions locations (drop 1 locations)
+        & concat
+        & foldlM visit (one (0, 0))
+        & leftToMaybe
+  where
+    locations = scanl walk (Location North 0 0) (toList route)
+
+segmentPositions :: Location -> Location -> [Location]
+segmentPositions start end =
+    [ Location end.heading (start.east + step * signum dx) (start.north + step * signum dy)
+    | step <- [1 .. abs dx + abs dy]
+    ]
+  where
+    dx = end.east - start.east
+    dy = end.north - start.north
+
+visit :: Set (Integer, Integer) -> Location -> Either Integer (Set (Integer, Integer))
+visit seen location
+    | Set.member position seen = Left (distance location)
+    | otherwise = Right (Set.insert position seen)
+  where
+    position = (location.east, location.north)
 
 walk :: Location -> Instruction -> Location
 walk location (Instruction turn (Steps steps)) =
