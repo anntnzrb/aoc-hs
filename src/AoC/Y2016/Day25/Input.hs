@@ -1,9 +1,9 @@
--- | Clock Assembunny, including toggles and integer output operands.
+-- | Clock Assembunny, including toggles and output of integer literals or register references.
 module AoC.Y2016.Day25.Input (Input (Input), parseInput) where
 
 import AoC.Assembunny (Dialect (Clock), Instruction, parseProgram)
 
--- | Clock instructions in initial address order; output operands are integers.
+-- | Clock instructions in initial address order; output operands are integer literals or register references.
 newtype Input
     = -- | Instructions in initial address order.
       Input [Instruction]
