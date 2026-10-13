@@ -6,16 +6,42 @@ import Data.Map.Strict qualified as Map
 import Text.Megaparsec (sepBy1, try)
 import Text.Megaparsec.Char (char, eol, lowerChar, string)
 
-data Floor = FloorOne | FloorTwo | FloorThree | FloorFour
+-- | Building floors ordered from bottom to top.
+data Floor
+    = -- | Bottom floor.
+      FloorOne
+    | -- | Second floor.
+      FloorTwo
+    | -- | Third floor.
+      FloorThree
+    | -- | Top floor and final destination.
+      FloorFour
     deriving stock (Eq, Ord)
 
-newtype Input = Input (Map Text Locations)
+-- | Each element name maps to the locations of its paired generator and microchip.
+newtype Input
+    = -- | Element names and their paired locations.
+      Input (Map Text Locations)
 
-data Locations = Locations {generatorFloor :: Floor, microchipFloor :: Floor}
+-- | The two floor locations for one element; safety is checked by the solver.
+data Locations = Locations
+    { generatorFloor :: Floor
+    -- ^ Floor holding the element's generator.
+    , microchipFloor :: Floor
+    -- ^ Floor holding the element's microchip.
+    }
 
-data Component = Generator | Microchip
+-- | The two inventory item kinds belonging to each element.
+data Component
+    = -- | Power source for the named element.
+      Generator
+    | -- | Chip protected by its matching generator.
+      Microchip
     deriving stock (Eq, Ord)
 
+{- | Accept four ordered floor descriptions; reject elements without exactly one
+generator and one microchip. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text Input
 parseInput text = do
     inventory <- parseText inventoryParser text

@@ -19,6 +19,9 @@ import Data.ByteString qualified as BS
 import Data.Char (isOctDigit)
 import Data.Map.Strict qualified as Map
 
+{- | Return the sequential and position-based eight-character door passwords using
+qualifying MD5 hashes. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input door <- parseInput text

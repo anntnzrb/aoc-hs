@@ -5,6 +5,9 @@ Part 2 is absent only without a computational part 2; unfinished parts answer @0
 -}
 module AoC.Solution (Answers, Solver, answers, part1, render) where
 
+{- | Validated nonempty single-line answers in part order; an absent second part means
+no computational part 2.
+-}
 data Answers = Answers Text (Maybe Text)
 
 -- | Puzzle input to its answers, or why the input or answers are invalid.

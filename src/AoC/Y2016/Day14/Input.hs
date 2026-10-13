@@ -5,8 +5,14 @@ import AoC.Parse (Parser, parseText)
 import Text.Megaparsec (takeWhile1P)
 import Text.Megaparsec.Char (eol)
 
-newtype Input = Input Text
+-- | The salt prefixed to decimal indices before hashing.
+newtype Input
+    = -- | Unmodified hashing salt.
+      Input Text
 
+{- | Accept a nonempty single-line salt and optional final line ending; reject empty
+salts or extra lines. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text Input
 parseInput = parseText salt
   where

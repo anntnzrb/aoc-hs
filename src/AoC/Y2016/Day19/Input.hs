@@ -5,8 +5,15 @@ import AoC.Parse (Parser, parseText)
 import Text.Megaparsec.Char (eol)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
 
-newtype Input = Input {elfCount :: Integer}
+-- | A strictly positive population of elves numbered from 1.
+newtype Input = Input
+    { elfCount :: Integer
+    -- ^ Positive count of elves, whose labels start at 1.
+    }
 
+{- | Accept one positive decimal population and optional final line ending; reject zero,
+signs or trailing text. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text Input
 parseInput = parseText population
 

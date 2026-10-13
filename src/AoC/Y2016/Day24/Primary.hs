@@ -17,6 +17,9 @@ type Distances = Map Int (Map Int Int)
 
 type Routes = Map (Int, Int) Int
 
+{- | Return minimum steps visiting every numbered location from 0, then returning to 0;
+unreachable routes fail. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     input <- parseInput text

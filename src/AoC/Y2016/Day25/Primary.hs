@@ -19,6 +19,9 @@ data Signal = Signal
     }
     deriving stock (Eq, Ord)
 
+{- | Return the smallest positive register-a seed proving an infinite alternating 0/1
+clock; no computational second answer. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input instructions <- parseInput text

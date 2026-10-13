@@ -12,6 +12,9 @@ import Data.Bits (shiftR, (.&.))
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 
+{- | Hash bytes exactly as supplied and return 32 lowercase ASCII hexadecimal bytes in
+digest order.
+-}
 md5Hex :: ByteString -> ByteString
 md5Hex = MD5.hash >>> Base16.encode
 

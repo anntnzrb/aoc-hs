@@ -35,6 +35,10 @@ directionOffset = \case
     Leftward -> (0, -1)
     Rightward -> (0, 1)
 
+{- | Return the shortest vault path and longest successful path length; use 0 for both
+when no path reaches the vault; exhaustive search requires a finite path tree. Input
+grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input passcode <- parseInput text

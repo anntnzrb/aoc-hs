@@ -22,6 +22,9 @@ type Position = (Int, Int)
 
 type Loads = Map Position Int
 
+{- | Count directed viable node pairs and minimum moves of goal data to (0,0); missing
+or unreachable goal data uses 0. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     nodes <- parseInput text

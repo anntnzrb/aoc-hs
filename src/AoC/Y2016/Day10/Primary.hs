@@ -21,6 +21,9 @@ data Factory = Factory
     , outputs :: Map Natural Chip
     }
 
+{- | Return the bot comparing chips 17 and 61, then the product in outputs 0, 1 and 2;
+unavailable results use 0. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input instructions <- parseInput text

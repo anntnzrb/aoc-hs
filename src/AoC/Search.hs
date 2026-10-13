@@ -19,6 +19,10 @@ import Data.IntSet qualified as IntSet
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 
+{- | Produce lazy distance layers from the origin at zero; visit each vertex once,
+ignoring duplicate edges and cycles. Successor lists must be finite and distances fit
+Int.
+-}
 breadthFirstLayers :: (Ord vertex) => (vertex -> [vertex]) -> vertex -> [(Int, Set vertex)]
 breadthFirstLayers successors origin = unfoldr advance (0, one origin, one origin)
   where
@@ -34,18 +38,30 @@ breadthFirstLayers successors origin = unfoldr advance (0, one origin, one origi
             | Set.member vertex visited = reached
             | otherwise = Set.insert vertex reached
 
+{- | Return minimum edge count to any matching vertex, or Nothing after exhausting the
+reachable component; successor lists must be finite.
+-}
 shortestDistance :: (Ord vertex) => (vertex -> [vertex]) -> (vertex -> Bool) -> vertex -> Maybe Int
 shortestDistance successors finished origin = breadthFirstLayers successors origin & find (any finished . snd) <&> fst
 
+{- | Map every reachable vertex to its minimum edge count, including the origin at zero;
+require a finite reachable component and distances fitting Int.
+-}
 distances :: (Ord vertex) => (vertex -> [vertex]) -> vertex -> Map vertex Int
 distances successors origin = breadthFirstLayers successors origin & foldl' addLayer Map.empty
   where
     addLayer :: (Ord vertex) => Map vertex Int -> (Int, Set vertex) -> Map vertex Int
     addLayer known (distance, frontier) = Set.foldl' (\reached vertex -> Map.insert vertex distance reached) known frontier
 
+{- | Find minimum edge count in an Int-keyed graph; return Nothing if no reachable
+vertex matches. Successor lists must be finite and distances fit Int.
+-}
 shortestIntDistance :: (Int -> [Int]) -> (Int -> Bool) -> Int -> Maybe Int
 shortestIntDistance successors finished origin = intLayers successors origin & find (IntSet.foldr (\vertex rest -> finished vertex || rest) False . snd) <&> fst
 
+{- | Map all reachable Int vertices to minimum edge counts; require a finite reachable
+component and distances fitting Int.
+-}
 intDistances :: (Int -> [Int]) -> Int -> IntMap Int
 intDistances successors origin = intLayers successors origin & foldl' addLayer IntMap.empty
   where

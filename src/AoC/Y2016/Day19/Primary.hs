@@ -8,6 +8,9 @@ module AoC.Y2016.Day19.Primary (solver) where
 import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day19.Input (Input (elfCount), parseInput)
 
+{- | Return the surviving one-based elf number for left-neighbour and opposite-elf
+stealing. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     input <- parseInput text

@@ -9,15 +9,26 @@ import Text.Megaparsec (choice, satisfy, sepEndBy1, try)
 import Text.Megaparsec.Char (char, eol, string)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
 
-data Direction = Leftward | Rightward
+-- | Which way a cyclic password rotation moves letters.
+data Direction
+    = -- | Move letters toward smaller indices.
+      Leftward
+    | -- | Move letters toward larger indices.
+      Rightward
 
-newtype Letter = Letter Char
+-- | A lowercase ASCII password character.
+newtype Letter
+    = Letter Char
 
+-- | Recover the lowercase ASCII character represented by the letter.
 letterValue :: Letter -> Char
 letterValue (Letter value) = value
 
-data Span = Span Natural Natural
+-- | An inclusive interval of zero-based positions with start no greater than end.
+data Span
+    = Span Natural Natural
 
+-- | Return the inclusive start and end positions, in that order.
 bounds :: Span -> (Natural, Natural)
 bounds (Span start end) = (start, end)
 
@@ -26,14 +37,27 @@ spanBetween start end
     | start <= end = Right (Span start end)
     | otherwise = Left "reversed interval"
 
+{- | One password edit; positions are zero-based and validated against the password
+during execution.
+-}
 data Operation
-    = SwapPosition Natural Natural
-    | SwapLetter Letter Letter
-    | Rotate Direction Natural
-    | RotateLetter Letter
-    | Reverse Span
-    | Move Natural Natural
+    = -- | Exchange the letters at two positions.
+      SwapPosition Natural Natural
+    | -- | Exchange all occurrences of two letters.
+      SwapLetter Letter Letter
+    | -- | Rotate cyclically in a direction by a step count.
+      Rotate Direction Natural
+    | -- | Rotate right by one plus the letter index, plus one when that index is at least four.
+      RotateLetter Letter
+    | -- | Reverse an inclusive span of positions.
+      Reverse Span
+    | -- | Remove the letter at the first position and insert it at the second.
+      Move Natural Natural
 
+{- | Accept the six password operation grammars in written order; reject non-ASCII
+letters and reversed spans. Positions remain unchecked against a password. Errors are
+returned as text.
+-}
 parseInput :: Text -> Either Text [Operation]
 parseInput = parseText (operation `sepEndBy1` eol)
 

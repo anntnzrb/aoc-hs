@@ -56,6 +56,9 @@ import AoC.Y2016.Day25.Primary qualified as Day25Primary
 
 -- ops:year-imports
 
+{- | Registered 2016 solvers indexed by day and variant; only listed implementations are
+dispatchable.
+-}
 solvers :: Map (Int, Variant) Solver
 solvers =
     Map.fromList

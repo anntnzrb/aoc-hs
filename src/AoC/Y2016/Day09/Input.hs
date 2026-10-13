@@ -7,10 +7,21 @@ import Text.Megaparsec (takeP, takeWhile1P)
 import Text.Megaparsec.Char (char)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
 
-newtype Input = Input [Chunk]
+-- | Compressed chunks in source order after whitespace removal.
+newtype Input
+    = -- | Compressed chunks in source order.
+      Input [Chunk]
 
-data Chunk = Literal Text | Repeat Natural Text
+-- | Literal text or a repeated payload whose nested markers have not yet been parsed.
+data Chunk
+    = -- | Text copied without repetition.
+      Literal Text
+    | -- | Copy count followed by raw marker payload.
+      Repeat Natural Text
 
+{- | Discard whitespace, then accept literals and (width x copies) markers without
+spaces; reject malformed markers or truncated payloads. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text Input
 parseInput text =
     text

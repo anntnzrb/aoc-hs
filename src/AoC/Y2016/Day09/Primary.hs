@@ -10,6 +10,10 @@ module AoC.Y2016.Day09.Primary (solver) where
 import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day09.Input (Chunk (Literal, Repeat), Input (Input), parseInput)
 
+{- | Return decompressed lengths with literal marker payloads, then recursively
+interpreted payloads; malformed nested markers use 0 for part 2. Grammar errors are
+returned as text.
+-}
 solver :: Solver
 solver text = do
     input@(Input chunks) <- parseInput text

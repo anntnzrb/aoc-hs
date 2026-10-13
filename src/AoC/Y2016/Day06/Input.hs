@@ -6,8 +6,14 @@ import Data.Char (isAsciiLower)
 import Text.Megaparsec (satisfy, try)
 import Text.Megaparsec.Char (eol)
 
-newtype Input = Input (NonEmpty (NonEmpty Char))
+-- | Equal-width received messages, preserving row and character order.
+newtype Input
+    = -- | Messages in received order.
+      Input (NonEmpty (NonEmpty Char))
 
+{- | Accept nonempty equal-width lowercase ASCII messages; reject ragged rows, blank
+lines and other letters. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text Input
 parseInput = parseText messages
 

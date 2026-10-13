@@ -12,6 +12,9 @@ import Data.Set qualified as Set
 
 type Screen = Set (Int, Int)
 
+{- | Return the lit-pixel count and the ten-letter screen code; use 0 when glyphs do not
+match the font. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     instructions <- parseInput text

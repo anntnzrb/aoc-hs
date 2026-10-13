@@ -9,13 +9,19 @@ import Data.Set qualified as Set
 import Text.Megaparsec (oneOf, sepEndBy1)
 import Text.Megaparsec.Char (char, eol)
 
+-- | Walkable cells and numbered targets in zero-based (row, column) coordinates.
 data Input = Input
     { passages :: Set (Int, Int)
+    -- ^ Walkable cells, including numbered locations.
     , locations :: Map Int (Int, Int)
+    -- ^ Unique digit labels mapped to walkable cells; includes label 0.
     }
 
 data Cell = Wall | Passage | Location Int
 
+{- | Accept a rectangular map of walls, passages and single-digit locations; reject
+duplicate numbers, missing location 0 and ragged rows. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text Input
 parseInput text = do
     rows <- parseText (some cell `sepEndBy1` eol) text

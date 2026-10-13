@@ -6,13 +6,26 @@ import Data.Map.Strict qualified as Map
 import Text.Megaparsec (sepEndBy1, takeWhileP)
 import Text.Megaparsec.Char (char, eol, hspace, hspace1, string)
 
-data Node = Node
-    { position :: (Int, Int)
-    , capacity :: Int
-    , used :: Int
-    , available :: Int
-    }
+{- | A storage node with positive capacity and used plus available equal to capacity.
+Parsing enforces these invariants; direct construction must preserve them.
+-}
+data Node
+    = -- | Coordinates and total, occupied and free storage.
+      Node
+      { position :: (Int, Int)
+    -- ^ Nonnegative (x, y) grid coordinates.
+      , capacity :: Int
+    -- ^ Positive total storage in terabytes.
+      , used :: Int
+    -- ^ Occupied storage in terabytes, at most capacity.
+      , available :: Int
+    -- ^ Free storage in terabytes, equal to capacity minus used.
+      }
 
+{- | Accept node listings with optional root/Filesystem headers; reject duplicate
+coordinates, out-of-range Int values and inconsistent capacities. Errors are returned
+as text.
+-}
 parseInput :: Text -> Either Text [Node]
 parseInput text = do
     nodes <- parseText parser text

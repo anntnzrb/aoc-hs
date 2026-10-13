@@ -5,10 +5,25 @@ import AoC.Parse (Parser, parseText)
 import Text.Megaparsec (try)
 import Text.Megaparsec.Char (char, eol)
 
-data Direction = Upward | Downward | Leftward | Rightward
+-- | A unit keypad movement; the keypad decides whether its destination exists.
+data Direction
+    = -- | Move one row up.
+      Upward
+    | -- | Move one row down.
+      Downward
+    | -- | Move one column left.
+      Leftward
+    | -- | Move one column right.
+      Rightward
 
-newtype Input = Input (NonEmpty (NonEmpty Direction))
+-- | One nonempty movement sequence per requested keypad digit, in input order.
+newtype Input
+    = -- | Movement lines in code-digit order.
+      Input (NonEmpty (NonEmpty Direction))
 
+{- | Accept nonempty U/D/L/R lines, preserving line boundaries; reject blank lines and
+other characters. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text Input
 parseInput = parseText instructions
 

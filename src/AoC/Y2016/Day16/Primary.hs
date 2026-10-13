@@ -9,6 +9,9 @@ import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day16.Input (Input (Input), parseInput)
 import Data.ByteString qualified as Bytes
 
+{- | Return dragon checksums for disks of 272 and 35651584 bits, truncating expanded
+data to each size. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input bits <- parseInput text

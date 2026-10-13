@@ -7,6 +7,10 @@ import AoC.Y2016.Registry qualified as Y2016
 import Data.Map.Strict qualified as Map
 
 -- ops:root-imports
+
+{- | Registered solvers indexed by year, day and variant; absent keys have no
+implementation.
+-}
 solvers :: Map Key Solver
 solvers =
     Map.unions

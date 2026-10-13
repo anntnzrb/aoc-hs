@@ -7,12 +7,24 @@ import Text.Megaparsec (count, satisfy, sepEndBy1, takeWhile1P)
 import Text.Megaparsec.Char (char, eol)
 import Text.Megaparsec.Char.Lexer (decimal)
 
-data Room = Room
-    { words :: NonEmpty Text
-    , sector :: Natural
-    , checksum :: Text
-    }
+{- | An encrypted room claim. Parsing enforces lowercase words and a five-letter
+checksum; the solver checks whether that checksum is correct. Direct construction
+must preserve the grammar invariants.
+-}
+data Room
+    = -- | Name words, sector identifier and claimed checksum.
+      Room
+      { words :: NonEmpty Text
+    -- ^ Nonempty lowercase name words in written order.
+      , sector :: Natural
+    -- ^ Nonnegative sector identifier and rotation amount.
+      , checksum :: Text
+    -- ^ Five lowercase letters claimed as the frequency checksum.
+      }
 
+{- | Accept hyphenated lowercase names, a nonnegative sector and five-letter bracketed
+checksum; reject other syntax. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text [Room]
 parseInput = parseText (room `sepEndBy1` eol)
 

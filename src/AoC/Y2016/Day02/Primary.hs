@@ -13,6 +13,9 @@ type Position = (Int, Int)
 
 type Button = (Position, Char)
 
+{- | Return bathroom codes for the square and diamond keypads; moves beyond either
+keypad leave the finger in place. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input rows <- parseInput text

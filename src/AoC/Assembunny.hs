@@ -37,33 +37,69 @@ import Text.Megaparsec (Parsec, eof, errorBundlePretty, parse, sepEndBy1)
 import Text.Megaparsec.Char (char, eol, string)
 import Text.Megaparsec.Char.Lexer qualified as Lexer
 
-data Register = A | B | C | D
+-- | The four integer registers available to every dialect.
+data Register
+    = -- | Register a.
+      A
+    | -- | Register b.
+      B
+    | -- | Register c.
+      C
+    | -- | Register d.
+      D
     deriving stock (Eq, Ord, Show)
 
-data Value = Literal Integer | RegisterValue Register
+-- | An immediate integer or a register read at execution time.
+data Value
+    = -- | An immediate integer.
+      Literal Integer
+    | -- | Read the named register.
+      RegisterValue Register
     deriving stock (Eq, Ord, Show)
 
+-- | One live instruction; literal write destinations are no-ops.
 data Instruction
-    = Copy Value Value
-    | Increment Value
-    | Decrement Value
-    | Jump Value Value
-    | Toggle Value
-    | Output Value
+    = -- | Copy the source into the destination.
+      Copy Value Value
+    | -- | Add one to the destination.
+      Increment Value
+    | -- | Subtract one from the destination.
+      Decrement Value
+    | -- | If the first operand is nonzero, jump by the second operand relative to the current counter.
+      Jump Value Value
+    | -- | Toggle the instruction at the current counter plus the operand.
+      Toggle Value
+    | -- | Emit the operand value; callers consume it before stepping.
+      Output Value
     deriving stock (Eq, Ord, Show)
 
-data Dialect = Basic | SelfModifying | Clock
+-- | The instruction grammar accepted before execution.
+data Dialect
+    = -- | Copy, increment, decrement and jumps with restricted operands.
+      Basic
+    | -- | Basic operations with general operands and toggle.
+      SelfModifying
+    | -- | Self-modifying operations plus output.
+      Clock
     deriving stock (Eq)
 
-data Machine = Machine
+-- | A live program and register state at an integer instruction address.
+data Machine
+    = Machine
     { counter :: Integer
+    -- ^ Current zero-based instruction address; absent addresses halt.
     , registers :: Map Register Integer
+    -- ^ Current integer values; missing registers read as zero.
     , program :: Map Integer Instruction
+    -- ^ Live address-to-instruction map, including any toggles.
     }
     deriving stock (Eq, Ord, Show)
 
 type Parser = Parsec Void Text
 
+{- | Consume nonempty instruction lines with optional final line ending; reject operands
+or opcodes outside the selected dialect with textual errors.
+-}
 parseProgram :: Dialect -> Text -> Either Text [Instruction]
 parseProgram dialect = parse (instruction dialect `sepEndBy1` eol <* eof) "assembunny" >>> first (toText . errorBundlePretty)
 
@@ -88,12 +124,19 @@ integer = Lexer.signed pass Lexer.decimal
 register :: Parser Register
 register = (A <$ char 'a') <|> (B <$ char 'b') <|> (C <$ char 'c') <|> (D <$ char 'd')
 
+{- | Assign addresses from zero and start there; duplicate register assignments keep the
+last value, absent registers read as zero.
+-}
 initialise :: [Instruction] -> [(Register, Integer)] -> Machine
 initialise instructions assignments = Machine 0 (Map.fromList assignments) (Map.fromDistinctAscList (zip [0 ..] instructions))
 
+-- | Look up the live instruction at the counter; Nothing means the machine has halted.
 current :: Machine -> Maybe Instruction
 current machine = Map.lookup machine.counter machine.program
 
+{- | Execute one live instruction, leaving halted machines unchanged; output advances
+without retaining emitted values.
+-}
 step :: Machine -> Machine
 step machine = maybe machine (apply machine) (current machine)
 
@@ -120,6 +163,7 @@ toggle = \case
     Jump source destination -> Copy source destination
     Copy source destination -> Jump source destination
 
+-- | Resolve a literal or read a register, defaulting an absent register to zero.
 readValue :: Value -> Machine -> Integer
 readValue operand machine = case operand of
     Literal number -> number
@@ -130,6 +174,9 @@ writeValue destination number machine = case destination of
     Literal _ -> machine
     RegisterValue name -> machine{registers = Map.insert name number machine.registers}
 
+{- | Perform one step or collapse a verified terminating output-free arithmetic loop;
+preserve the exact resulting machine.
+-}
 acceleratedStep :: Machine -> Machine
 acceleratedStep machine = fromMaybe (step machine) (divideLoop machine <|> multiplyLoop machine <|> addLoop machine)
 

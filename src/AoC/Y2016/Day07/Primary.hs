@@ -10,6 +10,9 @@ import AoC.Y2016.Day07.Input (Address (hypernets, supernets), parseInput)
 import Data.List (zip4)
 import Data.Set qualified as Set
 
+{- | Count IPv7 addresses supporting TLS and SSL using outside/inside bracket
+restrictions. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     addresses <- parseInput text

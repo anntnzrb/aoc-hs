@@ -9,6 +9,9 @@ import AoC.Assembunny (Instruction, Machine, Register (A, C), Value (RegisterVal
 import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day12.Input (Input (Input), parseInput)
 
+{- | Return register a after execution with c initially 0 and 1; other registers start
+at zero. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input instructions <- parseInput text

@@ -16,12 +16,21 @@ import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 
+{- | Return unit neighbours in first-axis negative/positive, then second-axis
+negative/positive order; apply no bounds or walls.
+-}
 orthogonal :: (Integral coordinate) => (coordinate, coordinate) -> [(coordinate, coordinate)]
 orthogonal (firstAxis, secondAxis) = [(firstAxis - 1, secondAxis), (firstAxis + 1, secondAxis), (firstAxis, secondAxis - 1), (firstAxis, secondAxis + 1)]
 
+{- | Test whether points differ by exactly one unit on one axis; use exact arithmetic
+for the distance.
+-}
 adjacent :: (Integral coordinate) => (coordinate, coordinate) -> (coordinate, coordinate) -> Bool
 adjacent (x, y) (otherX, otherY) = abs (toInteger x - toInteger otherX) + abs (toInteger y - toInteger otherY) == 1
 
+{- | Number a finite set from zero in ascending order and retain only unit neighbours
+inside it; set size must fit Int.
+-}
 indexedOrthogonal :: (Integral coordinate) => Set (coordinate, coordinate) -> (Map (coordinate, coordinate) Int, IntMap [Int])
 indexedOrthogonal positions = (indices, edges)
   where

@@ -8,6 +8,10 @@ module AoC.Y2016.Day03.Primary (solver) where
 import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day03.Input (Triangle (Triangle), parseInput)
 
+{- | Count valid triangles by rows, then by groups of three columns; use 0 for part 2
+when the final three-row group is incomplete. Input grammar errors are returned as
+text.
+-}
 solver :: Solver
 solver text = do
     triangles <- parseInput text

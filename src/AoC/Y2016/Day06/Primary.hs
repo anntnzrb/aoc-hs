@@ -10,6 +10,9 @@ import AoC.Y2016.Day06.Input (Input (Input), parseInput)
 import Data.List.NonEmpty qualified as NE
 import Data.Map.Strict qualified as Map
 
+{- | Recover the most-common and least-common letter per column; ties choose the larger
+letter for part 1 and smaller for part 2. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input rows <- parseInput text

@@ -11,6 +11,9 @@ import AoC.Y2016.Day21.Input (Direction (Leftward, Rightward), Letter, Operation
 import Data.Foldable qualified as Foldable
 import Data.Sequence qualified as Seq
 
+{- | Scramble abcdefgh and unscramble fbgdceah; fail on invalid positions, missing
+letters or ambiguous inverse rotations. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     operations <- parseInput text

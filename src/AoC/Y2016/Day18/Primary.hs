@@ -9,6 +9,9 @@ import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day18.Input (Input (Input), Tile (Safe, Trap), parseInput)
 import Data.Bits (bit, popCount, shiftL, shiftR, (.&.), (.|.))
 
+{- | Count safe tiles across 40 and 400000 rows, including the supplied first row; tiles
+outside the row are safe. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input row <- parseInput text

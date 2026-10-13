@@ -8,6 +8,10 @@ module AoC.Y2016.Day20.Primary (solver) where
 import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day20.Input (addressCount, bounds, parseInput)
 
+{- | Return the lowest allowed unsigned 32-bit address and total allowed addresses; use
+0 for the first answer when all are blocked. Input grammar errors are returned as
+text.
+-}
 solver :: Solver
 solver text = do
     ranges <- parseInput text

@@ -23,6 +23,9 @@ data HashSummary = HashSummary
     , quintuples :: ~[Char]
     }
 
+{- | Return the index of the 64th key with plain and 2017-round stretched MD5 hashes.
+Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input salt <- parseInput text

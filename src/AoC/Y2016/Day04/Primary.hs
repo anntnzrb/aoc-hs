@@ -9,6 +9,9 @@ import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day04.Input (Room (checksum, sector, words), parseInput)
 import Data.Map.Strict qualified as Map
 
+{- | Sum sectors of rooms with valid checksums and locate the decrypted northpole
+storage room; use 0 when it is absent. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     rooms <- parseInput text

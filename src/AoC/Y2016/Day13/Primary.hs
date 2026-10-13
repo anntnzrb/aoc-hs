@@ -14,6 +14,9 @@ import Data.Set qualified as Set
 
 type Position = (Integer, Integer)
 
+{- | Return shortest steps to (31,39) and the count reachable within 50 steps; use 0 if
+the target is unreachable. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input favorite <- parseInput text

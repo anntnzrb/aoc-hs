@@ -9,6 +9,10 @@ module AoC.Y2016.Day15.Primary (solver) where
 import AoC.Solution (Solver, answers)
 import AoC.Y2016.Day15.Input (Disc (initial, number, positions), disc, parseInput)
 
+{- | Return earliest nonnegative release seconds for the discs and an added 11-position
+disc; inconsistent part-1 congruences fail, while an incompatible added disc uses 0.
+Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     discs <- parseInput text

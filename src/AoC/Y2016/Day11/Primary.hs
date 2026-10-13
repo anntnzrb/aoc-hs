@@ -14,6 +14,10 @@ import Data.Map.Strict qualified as Map
 data Arrangement = Arrangement Floor [(Floor, Floor)]
     deriving stock (Eq, Ord)
 
+{- | Return minimum elevator moves for the inventory and for two additional pairs;
+invalid or unreachable part-1 states fail, while undefined part 2 uses 0. Input
+grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input elements <- parseInput text

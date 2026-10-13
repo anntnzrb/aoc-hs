@@ -13,6 +13,9 @@ data Heading = North | East | South | West
 
 data Location = Location {heading :: Heading, east :: Integer, north :: Integer}
 
+{- | Return Manhattan blocks to the final location and first revisited location; use 0
+when no revisit exists. Input grammar errors are returned as text.
+-}
 solver :: Solver
 solver text = do
     Input route <- parseInput text

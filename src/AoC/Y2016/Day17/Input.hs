@@ -5,8 +5,14 @@ import AoC.Parse (Parser, parseText)
 import Text.Megaparsec (takeWhile1P)
 import Text.Megaparsec.Char (eol)
 
-newtype Input = Input Text
+-- | The passcode prefixed to each movement path before hashing.
+newtype Input
+    = -- | Unmodified vault passcode.
+      Input Text
 
+{- | Accept a nonempty single-line passcode and optional final line ending; reject empty
+passcodes or extra lines. Errors are returned as text.
+-}
 parseInput :: Text -> Either Text Input
 parseInput = parseText passcode
   where
