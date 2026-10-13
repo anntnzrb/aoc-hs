@@ -1,7 +1,7 @@
 {- |
-approach: Expand open coordinates in breadth-first layers to find the target.
+approach: Breadth-first layers find the target and count rooms within 50 steps.
 cost: O(V log V) time and O(V) memory for visited coordinates; one input pass.
-trade: Set frontiers deduplicate paths without storing the infinite maze.
+trade: Set frontiers deduplicate paths; lazy layers stop each search on demand.
 -}
 module AoC.Y2016.Day13.Primary (solver) where
 
@@ -15,7 +15,7 @@ type Position = (Integer, Integer)
 solver :: Solver
 solver text = do
     Input favorite <- parseInput text
-    pure (Answers (show (shortest favorite (31, 39))) (Just "0"))
+    pure (Answers (show (shortest favorite (31, 39))) (Just (show (reachable favorite))))
 
 shortest :: Natural -> Position -> Int
 shortest favorite target
@@ -38,3 +38,6 @@ neighbors (x, y) = [(a, b) | (a, b) <- [(x - 1, y), (x + 1, y), (x, y - 1), (x, 
 
 isOpen :: Natural -> Position -> Bool
 isOpen favorite (x, y) = even (popCount (x * x + 3 * x + 2 * x * y + y + y * y + toInteger favorite))
+
+reachable :: Natural -> Int
+reachable favorite = layers favorite & take 51 & map (Set.size . snd) & sum
