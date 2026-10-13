@@ -345,8 +345,8 @@ docs/journal/2015.md          learning log
 - relude's hint file comes from the non-flake input `relude-src`, pinned at
   tag `v1.2.2.2`; the tag must match the package set's relude version.
   `RELUDE_HLINT` supplies its path to hlint.
-- The doc check does not exist yet; it arrives with `aoc-ops`: header tags,
-  no `String` in signatures under `src/AoC/` only, and no `HLINT` or `ANN`
+- The doc check (`aoc-ops doc`) runs in `just check` and checks header tags,
+  no `String` in signatures under `src/AoC/`, and no `HLINT`/`ANN`
   annotations.
 - The cabal `common` stanza owns the language settings: `default-language:
   GHC2024`; relude as the Prelude through `mixins: base hiding (Prelude),

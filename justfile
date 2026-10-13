@@ -22,6 +22,7 @@ lint:
 check: lint
     cabal build all
     cabal test all
+    cabal run -v0 aoc-ops -- doc
     weeder --hie-directory .hie
     env -u STAN_USE_DEFAULT_CONFIG stan --no-default --short
     env -u STAN_USE_DEFAULT_CONFIG stan --no-default --json-output >.hie/stan.json
